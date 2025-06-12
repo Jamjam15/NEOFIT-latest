@@ -861,10 +861,16 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             // Get the raw status text without any hidden content
             const currentStatus = currentStatusBadge.childNodes[0].textContent.trim();
 
-            // Convert underscored status to Title Case with spaces
-            const displayStatus = newStatus.split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
+            // Convert underscored status to exact ENUM format
+            const statusMap = {
+                'to_pack': 'To Pack',
+                'packed': 'Packed',
+                'in_transit': 'In Transit',
+                'delivered': 'Delivered',
+                'cancelled': 'Cancelled',
+                'returned': 'Returned'
+            };
+            const displayStatus = statusMap[newStatus.toLowerCase()] || newStatus;
 
             // Debug output
             console.log('Current Status:', currentStatus);

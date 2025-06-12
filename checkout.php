@@ -473,25 +473,54 @@ $total_amount = 0;
             remainingBalanceElement.classList.add(remainingBalance >= 0 ? 'positive' : 'negative');
         }
 
-        document.getElementById('place-order-btn').addEventListener('click', function(e) {
-            if (!this.disabled) {
-                const paymentMethod = document.getElementById('payment-method').value;
-                if (!paymentMethod) {
-                    alert('Please select a payment method');
+        const validateInputs = () => {
+            const paymentMethod = document.getElementById('payment-method').value;
+            if (!paymentMethod) {
+                alert('Please select a payment method');
+                return false;
+            }
+
+            const address = <?php echo json_encode($address); ?>;
+            if (!address) {
+                alert('Please add your delivery address in your profile settings');
+                return false;
+            }
+
+            const contact = <?php echo json_encode($contact); ?>;
+            if (!contact) {
+                alert('Please add your contact number in your profile settings');
+                return false;
+            }
+
+            return true;
+        };
+
+        document.getElementById('place-order-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            if (!validateInputs()) {
+                return;
+            }
+
+            const paymentMethod = document.getElementById('payment-method').value;
+            
+            // Handle NeoCreds payment with additional validation
+            if (paymentMethod === 'NeoCreds') {
+                const totalAmount = <?php echo $total_amount; ?>;
+                if (userNeocredsBalance < totalAmount) {
+                    alert('Insufficient NeoCreds balance.\n\nRequired: ₱' + totalAmount.toFixed(2) + 
+                          '\nYour Balance: ₱' + userNeocredsBalance.toFixed(2) +
+                          '\nShort By: ₱' + (totalAmount - userNeocredsBalance).toFixed(2));
                     return;
                 }
+            }
 
-                // Check NeoCreds balance if selected as payment method
-                if (paymentMethod === 'NeoCreds') {
-                    const totalAmount = <?php echo $total_amount; ?>;
-                    if (userNeocredsBalance < totalAmount) {
-                        alert('Insufficient NeoCreds balance.\n\nRequired: ₱' + totalAmount.toFixed(2) + 
-                              '\nYour Balance: ₱' + userNeocredsBalance.toFixed(2) +
-                              '\nShort By: ₱' + (totalAmount - userNeocredsBalance).toFixed(2));
-                        return;
-                    }
-                }
+            // Disable the button and show processing state
+            this.disabled = true;
+            const originalText = this.textContent;
+            this.textContent = 'Processing...';
 
+            try {
                 const formData = new FormData();
                 formData.append('payment_method', paymentMethod);
                 formData.append('delivery_address', <?php echo json_encode($address); ?>);
@@ -503,31 +532,35 @@ $total_amount = 0;
                 formData.append('cart_id', <?php echo $cart_id; ?>);
                 <?php endif; ?>
 
-                // Disable the button to prevent double submission
-                this.disabled = true;
-                this.textContent = 'Processing...';
+                // Log the data being sent
+                console.log('Sending order data:', Object.fromEntries(formData));
 
-                fetch('process_order.php', {
+                const response = await fetch('process_order.php', {
                     method: 'POST',
                     body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Order placed successfully!');
-                        window.location.href = 'orders.php';
-                    } else {
-                        alert(data.message || 'Error processing order');
-                        this.disabled = false;
-                        this.textContent = 'Place Order';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your order');
-                    this.disabled = false;
-                    this.textContent = 'Place Order';
                 });
+
+                const text = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Invalid JSON response:', text);
+                    throw new Error('Server returned invalid JSON response');
+                }
+
+                if (data.success) {
+                    alert('Order placed successfully!');
+                    window.location.href = 'orders.php';
+                } else {
+                    throw new Error(data.message || 'Error processing order');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'An error occurred while processing your order. Please try again.');
+            } finally {
+                this.disabled = false;
+                this.textContent = originalText;
             }
         });
     </script>

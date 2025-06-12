@@ -2,19 +2,58 @@
 session_start();
 include 'db.php';
 
-// Function to generate unique transaction ID
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
+// Function to generate unique transaction ID with microsecond precision
 function generateTransactionId() {
     $prefix = 'TXN';
-    $timestamp = time();
+    $time = explode(' ', microtime());
+    $timestamp = $time[1] . substr($time[0], 2, 6); // Includes microseconds
     $random = mt_rand(1000, 9999);
     return $prefix . $timestamp . $random;
 }
 
-// Check login
+// Validate request method
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    exit;
+}
+
+// Log all incoming data
+error_log("Processing order with data: " . print_r($_POST, true));
+error_log("User session data: " . print_r($_SESSION, true));
+
+// Validate required fields
+$required_fields = ['payment_method', 'delivery_address', 'contact_number', 'user_name', 'user_email'];
+$missing_fields = [];
+
+foreach ($required_fields as $field) {
+    if (empty($_POST[$field])) {
+        $missing_fields[] = $field;
+        error_log("Missing required field: " . $field);
+    }
+}
+
+if (!empty($missing_fields)) {
+    error_log("Missing required fields: " . implode(', ', $missing_fields));
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Missing required fields: ' . implode(', ', $missing_fields)
+    ]);
+    exit;
+}
+
+// Check login with detailed logging
 if (!isset($_SESSION['user_id'])) {
+    error_log("Checkout failed: User not logged in. Session data: " . print_r($_SESSION, true));
     echo json_encode(['success' => false, 'message' => 'Please log in to place an order']);
     exit;
 }
+
+error_log("User authenticated. ID: " . $_SESSION['user_id']);
 
 $user_id = $_SESSION['user_id'];
 $user_name = $_POST['user_name'] ?? '';
@@ -30,27 +69,60 @@ if (empty($payment_method) || empty($delivery_address) || empty($contact_number)
 }
 
 try {
-    $conn->begin_transaction();
+    error_log("DEBUG: Starting order process...");
+    error_log("DEBUG: POST data: " . print_r($_POST, true));
+    error_log("DEBUG: Session data: " . print_r($_SESSION, true));
 
-    // Fetch cart items
+    // Set initial order status using correct ENUM value that matches the database constraint
+    $status = 'To Pack'; // Must exactly match ENUM('To Pack','Packed','In Transit','Delivered','Cancelled','Returned')
+    error_log("Using order status: " . $status);
+
+    // Validate status before proceeding
+    $valid_statuses = ['To Pack', 'Packed', 'In Transit', 'Delivered', 'Cancelled', 'Returned'];
+    if (!in_array($status, $valid_statuses)) {
+        throw new Exception("Invalid order status: " . $status);
+    }
+
+    $conn->begin_transaction();
+    error_log("Started transaction");
+
+    // Fetch cart items with error handling
     if ($cart_id) {
+        error_log("Processing single cart item ID: " . $cart_id);
         $sql = "SELECT c.*, p.product_name, p.product_price 
                 FROM cart c
                 JOIN products p ON c.product_id = p.id
                 WHERE c.id = ? AND c.user_id = ?";
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error preparing cart query: " . $conn->error);
+        }
         $stmt->bind_param("ii", $cart_id, $user_id);
     } else {
+        error_log("Processing all cart items for user");
         $sql = "SELECT c.*, p.product_name, p.product_price 
                 FROM cart c
                 JOIN products p ON c.product_id = p.id
                 WHERE c.user_id = ?";
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error preparing cart query: " . $conn->error);
+        }
         $stmt->bind_param("i", $user_id);
     }
 
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Error fetching cart items: " . $stmt->error);
+    }
+    
     $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        error_log("No items found in cart");
+        throw new Exception("No items found in your cart. Please add items before checking out.");
+    }
+
+    error_log("Found " . $result->num_rows . " items in cart");
 
     $total_amount = 0;
     $cart_items = [];
@@ -58,44 +130,42 @@ try {
         $subtotal = $item['quantity'] * $item['product_price'];
         $total_amount += $subtotal;
         $cart_items[] = $item;
+        error_log("Added item: " . print_r($item, true));
     }
 
-    // ✅ Stock check per item and size
+    error_log("Total amount: " . $total_amount);
+
+    // Stock check with additional validation
     foreach ($cart_items as $item) {
-        switch (strtolower($item['size'])) {
-            case 'small':
-                $size_column = 'quantity_small';
-                break;
-            case 'medium':
-                $size_column = 'quantity_medium';
-                break;
-            case 'large':
-                $size_column = 'quantity_large';
-                break;
-            default:
-                $conn->rollback();
-                echo json_encode(['success' => false, 'message' => "Invalid size '{$item['size']}' for product '{$item['product_name']}'"]);
-                exit;
+        error_log("Checking stock for product ID: " . $item['product_id'] . ", Size: " . $item['size']);
+        
+        if (!in_array(strtolower($item['size']), ['small', 'medium', 'large'])) {
+            throw new Exception("Invalid size '{$item['size']}' for product '{$item['product_name']}'");
         }
 
+        $size_column = 'quantity_' . strtolower($item['size']);
+        
         $check_stock_sql = "SELECT $size_column AS stock FROM products WHERE id = ?";
         $check_stock_stmt = $conn->prepare($check_stock_sql);
+        if (!$check_stock_stmt) {
+            throw new Exception("Error preparing stock check: " . $conn->error);
+        }
+        
         $check_stock_stmt->bind_param("i", $item['product_id']);
-        $check_stock_stmt->execute();
+        if (!$check_stock_stmt->execute()) {
+            throw new Exception("Error checking stock: " . $check_stock_stmt->error);
+        }
+        
         $stock_result = $check_stock_stmt->get_result()->fetch_assoc();
 
         if ($stock_result['stock'] < $item['quantity']) {
-            $conn->rollback();
-            echo json_encode([
-                'success' => false,
-                'message' => "Not enough stock for '{$item['product_name']}' - Size: {$item['size']}"
-            ]);
-            exit;
+            throw new Exception("Not enough stock for '{$item['product_name']}' - Size: {$item['size']}");
         }
     }
 
-    // ✅ NeoCreds balance check
+    // NeoCreds check with logging
     if ($payment_method === 'NeoCreds') {
+        error_log("Checking NeoCreds balance for user: " . $user_id);
         $balance_stmt = $conn->prepare("SELECT neocreds FROM users WHERE id = ?");
         $balance_stmt->bind_param("i", $user_id);
         $balance_stmt->execute();
@@ -108,28 +178,33 @@ try {
         }
     }
 
-    // Create the order with forced status
-    $status = 'To Pack';
+    // Create the order with standardized status
     $order_sql = "INSERT INTO orders (user_id, user_name, user_email, total_amount, payment_method, delivery_address, contact_number, status) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, 'To Pack')";
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $order_stmt = $conn->prepare($order_sql);
     
     if (!$order_stmt) {
         throw new Exception("Error preparing order statement: " . $conn->error);
     }
     
-    $order_stmt->bind_param("issdsss", $user_id, $user_name, $user_email, $total_amount, $payment_method, $delivery_address, $contact_number);
+    error_log("Inserting order with status: " . $status);
+    $order_stmt->bind_param("issdssss", $user_id, $user_name, $user_email, $total_amount, $payment_method, $delivery_address, $contact_number, $status);
     
     if (!$order_stmt->execute()) {
+        error_log("Order insert error: " . $order_stmt->error);
         throw new Exception("Error creating order: " . $order_stmt->error);
     }
 
     $order_id = $conn->insert_id;
 
-    // Force update the status
-    $force_status = $conn->prepare("UPDATE orders SET status = 'To Pack' WHERE id = ?");
-    $force_status->bind_param("i", $order_id);
-    $force_status->execute();
+    // Force update the status - using consistent format
+    $force_status = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+    $force_status->bind_param("si", $status, $order_id);
+    
+    if (!$force_status->execute()) {
+        error_log("Status update error: " . $force_status->error);
+        throw new Exception("Error updating order status: " . $force_status->error);
+    }
 
     // ✅ Handle NeoCreds payment after order creation
     if ($payment_method === 'NeoCreds') {
@@ -215,6 +290,7 @@ try {
 } catch (Exception $e) {
     $conn->rollback();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("Error in checkout process: " . $e->getMessage());
 }
 
 // ✅ Handle NeoCreds payment history

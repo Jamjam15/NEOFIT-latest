@@ -40,24 +40,50 @@ function uploadPhoto($inputName, $isRequired = false) {
             return ['success' => false, 'message' => "File is too large (max 5MB)."];
         }
 
-        // Extra checks
+        // Create uploads directory if it doesn't exist
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true)) {
+                return ['success' => false, 'message' => "Failed to create upload directory. Please contact administrator."];
+            }
+            chmod($uploadDir, 0777); // Ensure directory has proper permissions
+        }
+
+        // Extra checks with detailed error messages
         if (!is_dir($uploadDir)) {
-            return ['success' => false, 'message' => "Upload directory does not exist."];
+            return ['success' => false, 'message' => "Upload directory '$uploadDir' does not exist and could not be created."];
         }
 
         if (!is_writable($uploadDir)) {
-            return ['success' => false, 'message' => "Upload directory is not writable."];
+            return ['success' => false, 'message' => "Upload directory '$uploadDir' is not writable. Please check permissions."];
         }
 
         // Move the uploaded file
         if (move_uploaded_file($tmpName, $targetFile)) {
+            // Set proper permissions on the uploaded file
+            chmod($targetFile, 0777);
             return ['success' => true, 'path' => $targetFile];
         } else {
-            return ['success' => false, 'message' => "Failed to move uploaded file."];
+            $error = error_get_last();
+            return ['success' => false, 'message' => "Failed to move uploaded file: " . ($error ? $error['message'] : 'Unknown error')];
         }
     }
 
-    return ['success' => false, 'message' => "File upload failed."];
+    // Map PHP upload errors to user-friendly messages
+    $uploadErrors = [
+        UPLOAD_ERR_INI_SIZE => "The uploaded file exceeds the upload_max_filesize directive in php.ini.",
+        UPLOAD_ERR_FORM_SIZE => "The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form.",
+        UPLOAD_ERR_PARTIAL => "The uploaded file was only partially uploaded.",
+        UPLOAD_ERR_NO_FILE => "No file was uploaded.",
+        UPLOAD_ERR_NO_TMP_DIR => "Missing a temporary folder.",
+        UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk.",
+        UPLOAD_ERR_EXTENSION => "A PHP extension stopped the file upload."
+    ];
+
+    $errorMessage = isset($uploadErrors[$_FILES[$inputName]['error']]) 
+        ? $uploadErrors[$_FILES[$inputName]['error']] 
+        : "Unknown upload error code: " . $_FILES[$inputName]['error'];
+
+    return ['success' => false, 'message' => $errorMessage];
 }
 
 // Check if form data is submitted
