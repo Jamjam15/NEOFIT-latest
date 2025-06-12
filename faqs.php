@@ -153,8 +153,6 @@ session_start();
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
-
     <div class="content-container">
         <h1 class="page-title">Frequently Asked Questions</h1>
 
@@ -253,8 +251,6 @@ session_start();
             <a href="contact.php" class="contact-button">Contact Us</a>
         </div>
     </div>
-
-    <?php include 'footer.php'; ?>
 
     <script>
         // FAQ Toggle Functionality

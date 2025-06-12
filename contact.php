@@ -184,8 +184,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
-
     <div class="content-container">
         <h1 class="page-title">Contact Us</h1>
 

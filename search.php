@@ -1,9 +1,6 @@
 <?php
 session_start();
 
-include 'db.php';
-include 'product_stats.php';
-
 // Get the search query
 $search = isset($_GET['q']) ? trim($_GET['q']) : '';
 

@@ -115,7 +115,7 @@ session_start();
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
+  
 
     <div class="content-container">
         <h1 class="page-title">Mission & Vision</h1>

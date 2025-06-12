@@ -1,7 +1,3 @@
-<?php
-// Include header first to start the session
-include 'header.php';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
