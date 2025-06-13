@@ -365,10 +365,43 @@ require_once 'payment_functions.php';
                 background-color: white;
             }
         }
+
+        /* Add these styles */
+        .date-filter-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn-reset-date {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            display: none;
+            transition: color 0.2s;
+        }
+
+        .btn-reset-date:hover {
+            color: #dc3545;
+        }
+
+        .date-filter-container:hover .btn-reset-date {
+            display: block;
+        }
+
+        .date-filter {
+            padding-right: 35px;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const dateFilter = document.getElementById('date-filter');
+            const resetDateBtn = document.getElementById('reset-date');
             
             // Clear the date input on page load
             dateFilter.value = '';
@@ -384,9 +417,20 @@ require_once 'payment_functions.php';
                         day: 'numeric'
                     });
                     this.setAttribute('data-date', formattedDate);
+                    resetDateBtn.style.display = 'block';
                 } else {
                     this.removeAttribute('data-date');
+                    resetDateBtn.style.display = 'none';
                 }
+            });
+
+            // Add reset button functionality
+            resetDateBtn.addEventListener('click', function() {
+                dateFilter.value = '';
+                dateFilter.removeAttribute('data-date');
+                this.style.display = 'none';
+                // Trigger the filter application if needed
+                document.getElementById('apply-filters').click();
             });
         });
     </script>
@@ -477,7 +521,12 @@ require_once 'payment_functions.php';
                         <option value="pending">Pending</option>
                         <option value="failed">Failed</option>
                     </select>
-                    <input type="date" class="date-filter" id="date-filter" placeholder="Select Date">
+                    <div class="date-filter-container">
+                        <input type="date" class="date-filter" id="date-filter" placeholder="Select Date">
+                        <button class="btn-reset-date" id="reset-date" title="Reset Date">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <button class="btn-apply" id="apply-filters">Apply Filters</button>
                 </div>
 
