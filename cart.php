@@ -3,7 +3,6 @@ session_start();
 include 'db.php';
 
 
-
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -65,17 +64,6 @@ $total_amount = 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
         .cart-title {
             font-size: 24px;
             color: #333;
@@ -97,42 +85,6 @@ $total_amount = 0;
         .cart-content {
             display: grid;
             grid-template-columns: 1fr 350px;
-<<<<<<< caleb
-            gap: 20px;
-        }
-
-        .cart-items {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .select-all-container {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .select-all-label {
-            font-size: 14px;
-            color: #666;
-            margin-left: 10px;
-            font-weight: 500;
-        }
-
-        .cart-item {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 20px;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            transition: all 0.2s ease;
-            align-items: center;
-=======
             gap: 30px;
             align-items: start;
         }
@@ -155,7 +107,6 @@ $total_amount = 0;
             position: relative;
             margin-bottom: 15px;
             min-height: 140px;
->>>>>>> main
         }
 
         .cart-item:hover {
@@ -169,51 +120,32 @@ $total_amount = 0;
         .item-checkbox {
             width: 18px;
             height: 18px;
-<<<<<<< caleb
-            accent-color: #55a39b;
-            cursor: pointer;
-=======
             cursor: pointer;
             margin: 0;
->>>>>>> main
         }
 
         .item-image {
             width: 100px;
             height: 100px;
             object-fit: cover;
-<<<<<<< caleb
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-=======
             border-radius: 8px;
->>>>>>> main
         }
 
         .item-details {
             display: flex;
             flex-direction: column;
             gap: 8px;
-<<<<<<< caleb
-=======
             min-width: 0;
->>>>>>> main
         }
 
         .item-name {
             font-size: 16px;
-<<<<<<< caleb
-            color: #333;
-            font-weight: 500;
-            text-decoration: none;
-=======
             font-weight: 500;
             color: #333;
             text-decoration: none;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
->>>>>>> main
         }
 
         .item-name:hover {
@@ -239,11 +171,8 @@ $total_amount = 0;
             display: flex;
             align-items: center;
             gap: 8px;
-<<<<<<< caleb
-=======
             min-width: 120px;
             justify-content: center;
->>>>>>> main
         }
 
         .quantity-btn {
@@ -256,19 +185,9 @@ $total_amount = 0;
             border: 1px solid #ddd;
             border-radius: 4px;
             cursor: pointer;
-<<<<<<< caleb
-            border-radius: 4px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            color: #666;
-=======
             font-size: 16px;
             color: #666;
             transition: all 0.2s ease;
->>>>>>> main
         }
 
         .quantity-btn:hover {
@@ -288,10 +207,6 @@ $total_amount = 0;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-<<<<<<< caleb
-            -moz-appearance: textfield;
-=======
->>>>>>> main
         }
 
         .quantity-input::-webkit-outer-spin-button,
@@ -321,39 +236,22 @@ $total_amount = 0;
             color: #666;
             font-size: 12px;
             cursor: pointer;
-<<<<<<< caleb
-            padding: 8px;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-radius: 4px;
-=======
             transition: all 0.2s ease;
             padding: 0;
->>>>>>> main
         }
 
         .remove-btn:hover {
             background: #fff5f5;
-<<<<<<< caleb
-            color: #ff0000;
-=======
             border-color: #ff4d4d;
             color: #ff4d4d;
->>>>>>> main
         }
 
         .remove-btn:active {
             transform: scale(0.95);
-<<<<<<< caleb
-=======
         }
 
         .remove-btn i {
             display: none;
->>>>>>> main
         }
 
         .cart-summary {
@@ -363,22 +261,6 @@ $total_amount = 0;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             padding: 20px;
-<<<<<<< caleb
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 20px;
-            height: fit-content;
-        }
-
-        .summary-title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-=======
             height: fit-content;
             min-width: 350px;
         }
@@ -396,22 +278,14 @@ $total_amount = 0;
         .summary-content {
             margin-bottom: 20px;
             min-height: 120px;
->>>>>>> main
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-<<<<<<< caleb
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #666;
-            padding: 8px 0;
-=======
             align-items: center;
             margin-bottom: 15px;
             min-height: 24px;
->>>>>>> main
         }
 
         .summary-row.total {
@@ -431,34 +305,6 @@ $total_amount = 0;
             background: #4CAF50;
             border: 1px solid #4CAF50;
             color: #fff;
-<<<<<<< caleb
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .checkout-btn:hover {
-            background: #4a8f88;
-            transform: translateY(-1px);
-        }
-
-        .checkout-btn:active {
-            transform: translateY(0);
-        }
-
-        .checkout-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-=======
             border-radius: 6px;
             font-size: 14px;
             font-weight: 500;
@@ -476,7 +322,6 @@ $total_amount = 0;
 
         .checkout-btn:active {
             transform: scale(0.95);
->>>>>>> main
         }
 
         .empty-cart {
@@ -528,10 +373,7 @@ $total_amount = 0;
 
             .cart-summary {
                 position: static;
-<<<<<<< caleb
-=======
                 min-width: 100%;
->>>>>>> main
             }
         }
 
@@ -547,29 +389,6 @@ $total_amount = 0;
             }
 
             .cart-item {
-<<<<<<< caleb
-                grid-template-columns: 1fr;
-                text-align: center;
-                padding: 20px 10px;
-            }
-
-            .item-image {
-                margin: 0 auto;
-            }
-
-            .item-details {
-                align-items: center;
-            }
-
-            .quantity-controls {
-                justify-content: center;
-                margin: 15px 0;
-            }
-
-            .remove-btn {
-                margin: 10px auto;
-                justify-content: center;
-=======
                 grid-template-columns: auto 80px 1fr auto;
                 gap: 15px;
                 padding: 15px;
@@ -710,7 +529,6 @@ $total_amount = 0;
                 transform: none;
                 top: auto;
                 right: auto;
->>>>>>> main
             }
         }
     </style>
@@ -718,27 +536,18 @@ $total_amount = 0;
 <body>
     <?php include 'header.php'; ?>
      
-    <?php include 'header.php'; ?>
-     
     <div class="container">
         <div class="cart-header">
             <h1 class="cart-title">
                 <i class="fas fa-shopping-cart"></i>
                 Shopping Cart
+                <span class="cart-count"><?php echo $result->num_rows; ?> items</span>
             </h1>
         </div>
 
         <div class="cart-content">
             <div class="cart-items">
                 <?php if ($result->num_rows > 0): ?>
-<<<<<<< caleb
-                    <div class="select-all-container">
-                        <input type="checkbox" id="select-all" class="item-checkbox">
-                        <label for="select-all" class="select-all-label">Select All Items</label>
-                    </div>
-
-=======
->>>>>>> main
                     <?php while ($item = $result->fetch_assoc()): ?>
                         <div class="cart-item" data-id="<?php echo $item['id']; ?>">
                             <input type="checkbox" class="item-checkbox" value="<?php echo $item['id']; ?>">
@@ -759,19 +568,6 @@ $total_amount = 0;
                                 <button class="quantity-btn increase">+</button>
                             </div>
 
-<<<<<<< caleb
-                            <button class="remove-btn">
-                                <i class="fas fa-trash"></i>
-                                Remove
-                            </button>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="empty-cart">
-                        <div class="empty-cart-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-=======
                             <button class="remove-btn" title="Remove item">×</button>
                         </div>
                     <?php endwhile; ?>
@@ -796,7 +592,6 @@ $total_amount = 0;
                         <div class="empty-cart-icon">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
->>>>>>> main
                         <p>Your cart is empty</p>
                         <a href="landing_page.php" class="continue-shopping">
                             <i class="fas fa-arrow-left"></i>
@@ -808,35 +603,6 @@ $total_amount = 0;
 
             <?php if ($result->num_rows > 0): ?>
                 <div class="cart-summary">
-<<<<<<< caleb
-                    <h2 class="summary-title">
-                        <i class="fas fa-receipt"></i>
-                        Order Summary
-                    </h2>
-
-                    <div class="summary-row">
-                        <span>Subtotal</span>
-                        <span>₱<?php echo number_format($total_amount, 2); ?></span>
-                    </div>
-
-                    <div class="summary-row">
-                        <span>Shipping</span>
-                        <span>Free</span>
-                    </div>
-
-                    <div class="summary-row total">
-                        <span>Total</span>
-                        <span>₱<?php echo number_format($total_amount, 2); ?></span>
-                    </div>
-
-                    <form id="checkout-form" action="checkout.php" method="GET">
-                        <input type="hidden" name="cart_ids" id="selected-items-input">
-                        <button type="submit" class="checkout-btn">
-                            <i class="fas fa-lock"></i>
-                            Proceed to Checkout
-                        </button>
-                    </form>
-=======
                     <div class="summary-header">
                         <h2>Order Summary</h2>
                     </div>
@@ -851,137 +617,18 @@ $total_amount = 0;
                         </div>
                         <form id="checkout-form" action="checkout.php" method="POST">
                             <input type="hidden" name="selected_items" id="selected-items-input" value="">
-                            <button type="submit" class="checkout-btn" id="checkout-btn" disabled>
+                            <button type="submit" class="checkout-btn">
                                 <i class="fas fa-shopping-cart"></i>
                                 Proceed to Checkout
                             </button>
                         </form>
                     </div>
->>>>>>> main
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
     <script>
-<<<<<<< caleb
-                document.addEventListener('DOMContentLoaded', function () {
-                    const cartItems = document.querySelectorAll('.cart-item');
-                    const checkoutForm = document.getElementById('checkout-form');
-                    const selectAllCheckbox = document.getElementById('select-all');
-                    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
-                    const hiddenInput = document.getElementById('selected-items-input');
-
-                    // QUANTITY + REMOVE BUTTONS
-                    cartItems.forEach(item => {
-                        const decreaseBtn = item.querySelector('.decrease');
-                        const increaseBtn = item.querySelector('.increase');
-                        const quantityInput = item.querySelector('.quantity-input');
-                        const removeBtn = item.querySelector('.remove-btn');
-                        const itemId = item.dataset.id;
-
-                        function updateQuantity(newQuantity) {
-                            fetch('update_cart.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    cart_id: itemId,
-                                    quantity: newQuantity
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    location.reload();
-                                } else {
-                                    alert(data.message || 'Error updating quantity');
-                                    quantityInput.value = data.current_quantity || quantityInput.value;
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Error updating quantity');
-                            });
-                        }
-
-                        // Event: Decrease quantity
-                        decreaseBtn.addEventListener('click', () => {
-                            const currentValue = parseInt(quantityInput.value);
-                            if (currentValue > 1) {
-                                updateQuantity(currentValue - 1);
-                            }
-                        });
-
-                        // Event: Increase quantity
-                        increaseBtn.addEventListener('click', () => {
-                            const currentValue = parseInt(quantityInput.value);
-                            updateQuantity(currentValue + 1);
-                        });
-
-                        // Event: Manual input
-                        quantityInput.addEventListener('change', () => {
-                            let value = parseInt(quantityInput.value);
-                            if (isNaN(value) || value < 1) value = 1;
-                            updateQuantity(value);
-                        });
-
-                        // Event: Remove item
-                        removeBtn.addEventListener('click', () => {
-                            if (confirm('Are you sure you want to remove this item?')) {
-                                fetch('remove_from_cart.php', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ cart_id: itemId })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        location.reload();
-                                    } else {
-                                        alert(data.message || 'Error removing item');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('Error removing item');
-                                });
-                            }
-                        });
-                    });
-
-                    // SELECT ALL Functionality
-                    selectAllCheckbox.addEventListener('change', function () {
-                        itemCheckboxes.forEach(cb => cb.checked = this.checked);
-                    });
-
-                    itemCheckboxes.forEach(cb => {
-                        cb.addEventListener('change', function () {
-                            if (!this.checked) {
-                                selectAllCheckbox.checked = false;
-                            } else if ([...itemCheckboxes].every(cb => cb.checked)) {
-                                selectAllCheckbox.checked = true;
-                            }
-                        });
-                    });
-
-                    // CHECKOUT Form Submission
-                    checkoutForm.addEventListener('submit', function (e) {
-                        const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked'))
-                                                .map(cb => cb.value);
-
-                        if (selectedIds.length === 0) {
-                            e.preventDefault();
-                            alert('Please select at least one item to checkout.');
-                            return;
-                        }
-
-                        hiddenInput.value = selectedIds.join(',');
-                    });
-                });
-                </script>
-=======
         document.addEventListener('DOMContentLoaded', function() {
             const selectAllCheckbox = document.getElementById('select-all');
             const itemCheckboxes = document.querySelectorAll('.cart-item .item-checkbox');
@@ -1045,10 +692,8 @@ $total_amount = 0;
 
             // Update selected count and delete button
             function updateSelectedCount() {
-                const checkedItems = document.querySelectorAll('.cart-item .item-checkbox:checked');
-                const checkoutBtn = document.getElementById('checkout-btn');
-                deleteSelectedBtn.style.display = checkedItems.length > 0 ? 'flex' : 'none';
-                checkoutBtn.disabled = checkedItems.length === 0;
+                const checkedItems = document.querySelectorAll('.cart-item .item-checkbox:checked').length;
+                deleteSelectedBtn.style.display = checkedItems > 0 ? 'flex' : 'none';
                 updateSummary(); // This will update the count with total quantity
                 updateSelectedItemsInput();
             }
@@ -1168,24 +813,40 @@ $total_amount = 0;
                 
                 if (selectedItems.length > 0) {
                     if (confirm('Are you sure you want to delete the selected items?')) {
-                        // Create FormData object
-                        const formData = new FormData();
-                        formData.append('items', JSON.stringify(selectedItems));
-
                         fetch('remove_from_cart.php', {
                             method: 'POST',
-                            body: formData
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ items: selectedItems })
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Show success message
+                                selectedItems.forEach(id => {
+                                    const item = document.querySelector(`[data-cart-id="${id}"]`);
+                                    if (item) {
+                                        item.remove();
+                                    }
+                                });
+                                
+                                totalItems = document.querySelectorAll('.cart-item .item-checkbox').length;
+                                updateSelectAllState();
+                                updateSelectedCount();
+                                updateSummary();
+                                
+                                const cartCount = document.querySelector('.cart-count');
+                                if (cartCount) {
+                                    cartCount.textContent = totalItems;
+                                }
+                                
                                 alert('Selected items have been removed from your cart.');
                                 
-                                // Reload the page to show updated cart
-                                window.location.reload();
+                                if (totalItems === 0) {
+                                    location.reload();
+                                }
                             } else {
-                                alert(data.message || 'Error removing items. Please try again.');
+                                alert('Error removing items. Please try again.');
                             }
                         })
                         .catch(error => {
@@ -1193,8 +854,6 @@ $total_amount = 0;
                             alert('Error removing items. Please try again.');
                         });
                     }
-                } else {
-                    alert('Please select items to delete.');
                 }
             });
 
@@ -1209,51 +868,12 @@ $total_amount = 0;
                 updateSelectedItemsInput();
             });
 
-            // Handle remove button
-            document.querySelectorAll('.remove-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const cartItem = this.closest('.cart-item');
-                    const cartId = cartItem.getAttribute('data-id');
-                    
-                    if (confirm('Are you sure you want to remove this item from your cart?')) {
-                        const formData = new FormData();
-                        formData.append('items', JSON.stringify([cartId]));
-
-                        fetch('remove_from_cart.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                cartItem.remove();
-                                updateSummary();
-                                updateSelectAllState();
-                                updateSelectedCount();
-                                
-                                // If no items left, reload page to show empty cart
-                                if (document.querySelectorAll('.cart-item').length === 0) {
-                                    window.location.reload();
-                                }
-                            } else {
-                                alert(data.message || 'Error removing item. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Error removing item. Please try again.');
-                        });
-                    }
-                });
-            });
-
             // Initialize counts and summary
             updateSelectAllState();
             updateSelectedCount();
             updateSummary();
         });
     </script>
->>>>>>> main
 
 </body>
 </html>
