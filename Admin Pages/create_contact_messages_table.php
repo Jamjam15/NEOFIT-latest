@@ -8,7 +8,7 @@ $sql = "CREATE TABLE IF NOT EXISTS contact_messages (
     email VARCHAR(100) NOT NULL,
     subject VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
-    status ENUM('unread', 'read', 'replied') DEFAULT 'unread',
+    status ENUM('unread', 'read', 'replied', 'deleted') DEFAULT 'unread',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     admin_reply TEXT NULL,

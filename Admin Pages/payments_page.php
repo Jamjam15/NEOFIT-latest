@@ -463,7 +463,7 @@ require_once 'payment_functions.php';
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                    <span>Messages</span>
                 </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
@@ -550,6 +550,12 @@ require_once 'payment_functions.php';
                         <?php
                         $payments = getFilteredPayments();
                         foreach ($payments as $payment) {
+                            // Check if payment method is Cash on Delivery and update status if needed
+                            if (strtolower($payment['payment_method']) === 'cod' || strtolower($payment['payment_method']) === 'cash on delivery') {
+                                updatePaymentStatusByMethod($payment['order_id'], $payment['payment_method']);
+                                $payment['status'] = 'success';
+                            }
+
                             $statusClass = '';
                             switch($payment['status']) {
                                 case 'success':
@@ -563,12 +569,14 @@ require_once 'payment_functions.php';
                                     break;
                             }
                             ?>
-                            <tr>                        <td><?php echo htmlspecialchars($payment['transaction_id']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['order_id']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['user_name']); ?></td>
-                        <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
-                        <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
-                        <td><?php echo htmlspecialchars(ucfirst($payment['payment_method'])); ?></td>                        <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($payment['status'])); ?></span></td>
+                            <tr>
+                                <td><?php echo htmlspecialchars($payment['transaction_id']); ?></td>
+                                <td><?php echo htmlspecialchars($payment['order_id']); ?></td>
+                                <td><?php echo htmlspecialchars($payment['user_name']); ?></td>
+                                <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
+                                <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars(ucfirst($payment['payment_method'])); ?></td>
+                                <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($payment['status'])); ?></span></td>
                             </tr>
                             <?php
                         }

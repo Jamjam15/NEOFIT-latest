@@ -4,9 +4,9 @@ include '../db.php';
 
 // Get filters from URL parameters
 $category = isset($_GET['category']) ? $_GET['category'] : 'All';
-$status = isset($_GET['status']) ? $_GET['status'] : 'All';
+$status = isset($_GET['status']) ? strtolower($_GET['status']) : 'All';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build the base SQL query
 $sql = "SELECT p.*, 
@@ -25,15 +25,16 @@ if ($category !== 'All') {
 }
 
 if ($status !== 'All') {
-    $where_conditions[] = "p.product_status = ?";
+    $where_conditions[] = "LOWER(p.product_status) = ?";
     $params[] = $status;
     $param_types .= 's';
 }
 
 if (!empty($search)) {
-    $where_conditions[] = "p.product_name LIKE ?";
-    $params[] = "%$search%";
-    $param_types .= 's';
+    $where_conditions[] = "(LOWER(p.product_name) LIKE ? OR LOWER(p.product_category) LIKE ?)";
+    $search_term = strtolower($search) . '%';
+    $params = array_merge($params, [$search_term, $search_term]);
+    $param_types .= 'ss';
 }
 
 if (!empty($where_conditions)) {
@@ -250,7 +251,117 @@ $total_count = $count_result->fetch_assoc()['total'];
             font-family: 'Arial Unicode MS', 'Arial', sans-serif;
             margin-right: 1px;
         }
+
+        .filters-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="6"><path d="M0 0h12L6 6z" fill="%23666"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 30px;
+        }
+
+        .filter-select:hover {
+            border-color: #4d8d8b;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #4d8d8b;
+            box-shadow: 0 0 0 2px rgba(77, 141, 139, 0.1);
+        }
+
+        .filter-select option {
+            padding: 8px;
+            background: white;
+            color: #333;
+        }
+
+        .search-form {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:hover {
+            border-color: #4d8d8b;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4d8d8b;
+            box-shadow: 0 0 0 2px rgba(77, 141, 139, 0.1);
+        }
+
+        .search-box::placeholder {
+            color: #999;
+        }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-box');
+            const productRows = document.querySelectorAll('#productList tr');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                productRows.forEach(row => {
+                    // Get the product name from the span inside product-name-cell
+                    const productNameSpan = row.querySelector('.product-name-cell span');
+                    if (productNameSpan) {
+                        const productName = productNameSpan.textContent.toLowerCase();
+                        
+                        if (productName.startsWith(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -272,7 +383,7 @@ $total_count = $count_result->fetch_assoc()['total'];
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                    <span>Messages</span>
                 </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
@@ -313,45 +424,50 @@ $total_count = $count_result->fetch_assoc()['total'];
                 </button>
             </div>
 
-            <div class="search-filter">
-                <div class="filters-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Search:</label>
-                        <input type="text" class="search-input" id="searchInput" 
-                               placeholder="Search products..." 
-                               value="<?php echo htmlspecialchars($search); ?>">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Category:</label>
-                        <select class="filter-select" id="categoryFilter">
+            <div class="filters-section">
+                <form method="GET" action="" class="filters-grid">
+                    <div class="filter-item">
+                        <label class="filter-label">Category</label>
+                        <select name="category" class="filter-select">
                             <option value="All" <?php echo $category === 'All' ? 'selected' : ''; ?>>All Categories</option>
-                            <option value="Men" <?php echo $category === 'Men' ? 'selected' : ''; ?>>Men</option>
-                            <option value="Women" <?php echo $category === 'Women' ? 'selected' : ''; ?>>Women</option>
+                            <option value="Oversized Shirts" <?php echo $category === 'Oversized Shirts' ? 'selected' : ''; ?>>Oversized Shirts</option>
+                            <option value="Oversized Pants" <?php echo $category === 'Oversized Pants' ? 'selected' : ''; ?>>Oversized Pants</option>
+                            <option value="Oversized Shorts" <?php echo $category === 'Oversized Shorts' ? 'selected' : ''; ?>>Oversized Shorts</option>
                         </select>
                     </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Status:</label>
-                        <select class="filter-select" id="statusFilter">
-                            <option value="All" <?php echo $status === 'All' ? 'selected' : ''; ?>>All Status</option>
+
+                    <div class="filter-item">
+                        <label class="filter-label">Status</label>
+                        <select name="status" class="filter-select" onchange="this.form.submit()">
+                            <option value="All" <?php echo $status === 'all' ? 'selected' : ''; ?>>All Status</option>
                             <option value="live" <?php echo $status === 'live' ? 'selected' : ''; ?>>Live</option>
                             <option value="unpublished" <?php echo $status === 'unpublished' ? 'selected' : ''; ?>>Unpublished</option>
                         </select>
                     </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Sort By:</label>
-                        <select class="filter-select" id="sortFilter">
+
+                    <div class="filter-item">
+                        <label class="filter-label">Sort By</label>
+                        <select name="sort" class="filter-select">
                             <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)</option>
                             <option value="name_desc" <?php echo $sort === 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)</option>
-                            <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price (Low-High)</option>
-                            <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price (High-Low)</option>
-                            <option value="stock_asc" <?php echo $sort === 'stock_asc' ? 'selected' : ''; ?>>Stock (Low-High)</option>
-                            <option value="stock_desc" <?php echo $sort === 'stock_desc' ? 'selected' : ''; ?>>Stock (High-Low)</option>
+                            <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price (Low to High)</option>
+                            <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price (High to Low)</option>
+                            <option value="stock_asc" <?php echo $sort === 'stock_asc' ? 'selected' : ''; ?>>Stock (Low to High)</option>
+                            <option value="stock_desc" <?php echo $sort === 'stock_desc' ? 'selected' : ''; ?>>Stock (High to Low)</option>
                         </select>
                     </div>
-                </div>
+
+                    <div class="filter-item">
+                        <label class="filter-label">Search</label>
+                        <form method="GET" action="" class="search-form">
+                            <input type="text" name="search" class="search-box" placeholder="Search by name or category..." 
+                                   value="<?php echo htmlspecialchars($search); ?>">
+                            <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
+                            <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
+                            <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort); ?>">
+                        </form>
+                    </div>
+                </form>
             </div>
             
             <div class="content-card">

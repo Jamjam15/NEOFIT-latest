@@ -431,6 +431,10 @@ $low_stock_result = $conn->query($sql_low_stock);
                     <i class="fas fa-undo"></i>
                     <span>Returns</span>
                 </li>
+                <li onclick="window.location.href='manage_returns.php'">
+                    <i class="fas fa-undo"></i>
+                    <span>Returns</span>
+                </li>
                 <li onclick="window.location.href='customer_orders_page.php'">
                     <i class="fas fa-users"></i>
                     <span>Customer Orders</span>

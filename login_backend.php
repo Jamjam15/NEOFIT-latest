@@ -3,7 +3,7 @@
 session_start();
 
 //Database Connection
-include 'db.php';
+include 'db_connection.php';
 
 // Function to send JSON response
 function sendJsonResponse($status, $message) {
@@ -18,14 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // **Admin login exception**  
-    if ($email === "admin@1" && $password === "admin") {
-        $_SESSION['admin@1'] = true;
-        sendJsonResponse('success', 'Admin login successful');
-    }
-
     // Check if email contains '@' (except for admin)
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== "admin") {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== "admin@1") {
         sendJsonResponse('error', 'Invalid email format');
     }
 
@@ -34,7 +28,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         sendJsonResponse('error', 'Email and password are required');
     }
 
-    // Prepare and execute the SQL query to find the user by email
+    // Handle admin login
+    if ($email === "admin@1") {
+        $stmt = $conn->prepare("SELECT password FROM admin WHERE email = 'admin@1'");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $admin = $result->fetch_assoc();
+            // If password matches stored password or is the default 'admin'
+            if ($password === $admin['password'] || ($admin['password'] === 'admin' && $password === 'admin')) {
+                $_SESSION['admin@1'] = true;
+                sendJsonResponse('success', 'Admin login successful');
+            } else {
+                sendJsonResponse('error', 'Invalid email or password');
+            }
+        } else {
+            // If no admin record exists, create one with default password
+            $stmt = $conn->prepare("INSERT INTO admin (email, password) VALUES ('admin@1', 'admin')");
+            if ($stmt->execute() && $password === 'admin') {
+                $_SESSION['admin@1'] = true;
+                sendJsonResponse('success', 'Admin login successful');
+            } else {
+                sendJsonResponse('error', 'Invalid email or password');
+            }
+        }
+        $stmt->close();
+        exit();
+    }
+
+    // Regular user login
     $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
