@@ -656,6 +656,10 @@ if (!isset($_SESSION['admin@1'])) {
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
+                <li onclick="window.location.href='manage_returns.php'">
+                    <i class="fas fa-undo"></i>
+                    <span>Returns</span>
+                </li>
                 <li onclick="window.location.href='customer_orders_page.php'">
                     <i class="fas fa-users"></i>
                     <span>Customer Orders</span>

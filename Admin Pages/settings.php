@@ -9,56 +9,10 @@ if (!isset($_SESSION['admin@1'])) {
 }
 
 include '../db_connection.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-session_start();
-if (!isset($_SESSION['admin@1'])) {
-    header('Location: ../index.php');
-    exit();
-}
-
-include '../db_connection.php';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_account'])) {
-        $current_password = $_POST['current_password'];
-        $new_password = $_POST['new_password'];
-        $confirm_password = $_POST['confirm_password'];
-        
-        // Get current admin password from database
-        $stmt = $conn->prepare("SELECT password FROM admin WHERE email = 'admin@1'");
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $admin = $result->fetch_assoc();
-            $stored_password = $admin['password'];
-            
-            // Check if current password matches stored password or is the default 'admin'
-            if ($current_password === $stored_password || ($stored_password === 'admin' && $current_password === 'admin')) {
-                if ($new_password === $confirm_password) {
-                    // Update password in the database
-                    $update_stmt = $conn->prepare("UPDATE admin SET password = ? WHERE email = 'admin@1'");
-                    $update_stmt->bind_param("s", $new_password);
-                    
-                    if ($update_stmt->execute()) {
-                        $success_message = "Password updated successfully!";
-                    } else {
-                        $error_message = "Error updating password: " . $conn->error;
-                    }
-                    $update_stmt->close();
-                } else {
-                    $error_message = "New passwords do not match.";
-                }
-            } else {
-                $error_message = "Current password is incorrect.";
-            }
-        } else {
-            $error_message = "Admin account not found.";
-        }
-        $stmt->close();
         $current_password = $_POST['current_password'];
         $new_password = $_POST['new_password'];
         $confirm_password = $_POST['confirm_password'];
@@ -207,8 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
-                </li>                <li onclick="window.location.href='manage_order_details_page.php'">
+                    <span>Messages</span>                <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
@@ -216,10 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-undo"></i>
                     <span>Returns</span>
                 </li>
-                <li onclick="window.location.href='manage_returns.php'">
-                    <i class="fas fa-undo"></i>
-                    <span>Returns</span>
-                </li>
+               
                 <li onclick="window.location.href='customer_orders_page.php'">
                     <i class="fas fa-users"></i>
                     <span>Customer Orders</span>
