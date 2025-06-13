@@ -59,12 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get return requests with order details
 $sql = "SELECT o.*, 
-        oi.quantity, oi.size, p.product_name, p.product_price,
+        oi.quantity, oi.size, p.product_name, p.product_price, p.photoFront,
         (oi.quantity * p.product_price) as item_total 
         FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
         JOIN products p ON oi.product_id = p.id
-        WHERE o.return_status = 'Pending'
+        WHERE o.return_status = 'Pending' OR o.status = 'Return Pending'
         ORDER BY o.return_requested_at DESC";
 
 $result = $conn->query($sql);
@@ -232,24 +232,39 @@ error_log("Found " . $result->num_rows . " pending return requests");
                     unset($_SESSION['error_message']);
                     ?>
                 </div>
-            <?php endif; ?>
-
-            <?php if ($result->num_rows > 0): ?>
+            <?php endif; ?>            <?php if ($result->num_rows > 0): ?>
                 <?php while($row = $result->fetch_assoc()): ?>
                     <div class="return-request">
-                        <h3>Order #<?php echo str_pad($row['id'], 8, '0', STR_PAD_LEFT); ?></h3>
+                        <h3>Return Request #<?php echo str_pad($row['id'], 8, '0', STR_PAD_LEFT); ?></h3>
                         <div class="return-details">
-                            <p><strong>Customer:</strong> <?php echo htmlspecialchars($row['user_name']); ?> (<?php echo htmlspecialchars($row['user_email']); ?>)</p>
-                            <p><strong>Order Date:</strong> <?php echo date('F j, Y', strtotime($row['order_date'])); ?></p>
-                            <p><strong>Return Requested:</strong> <?php echo date('F j, Y', strtotime($row['return_requested_at'])); ?></p>
-                            <p><strong>Product:</strong> <?php echo htmlspecialchars($row['product_name']); ?></p>
-                            <p><strong>Size:</strong> <?php echo htmlspecialchars($row['size']); ?></p>
-                            <p><strong>Quantity:</strong> <?php echo $row['quantity']; ?></p>
-                            <p><strong>Amount:</strong> ₱<?php echo number_format($row['item_total'], 2); ?></p>
-                            <div class="return-reason">
+                            <div class="return-header" style="display: grid; grid-template-columns: auto 1fr; gap: 20px; margin-bottom: 20px;">
+                                <div class="product-image" style="width: 120px; height: 120px;">
+                                    <img src="<?php echo htmlspecialchars($row['photoFront']); ?>" alt="Product" 
+                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;">
+                                </div>
+                                <div class="return-info">
+                                    <p><strong>Customer:</strong> <?php echo htmlspecialchars($row['user_name']); ?> (<?php echo htmlspecialchars($row['user_email']); ?>)</p>
+                                    <p><strong>Order Date:</strong> <?php echo date('F j, Y', strtotime($row['order_date'])); ?></p>
+                                    <p><strong>Return Requested:</strong> <?php echo date('F j, Y', strtotime($row['return_requested_at'])); ?></p>
+                                    <p><strong>Product:</strong> <?php echo htmlspecialchars($row['product_name']); ?></p>
+                                    <p><strong>Size:</strong> <?php echo htmlspecialchars($row['size']); ?></p>
+                                    <p><strong>Quantity:</strong> <?php echo $row['quantity']; ?></p>
+                                    <p><strong>Amount:</strong> ₱<?php echo number_format($row['item_total'], 2); ?></p>
+                                </div>
+                            </div><div class="return-reason">
                                 <strong>Return Reason:</strong><br>
                                 <?php echo nl2br(htmlspecialchars($row['return_reason'])); ?>
                             </div>
+                            <?php if (!empty($row['return_proof_image'])): ?>
+                            <div class="return-proof" style="margin-top: 15px;">
+                                <strong>Return Proof Image:</strong><br>
+                                <div style="margin-top: 10px;">
+                                    <img src="../return_proofs/<?php echo htmlspecialchars($row['return_proof_image']); ?>" 
+                                         alt="Return Proof" 
+                                         style="max-width: 300px; border-radius: 4px; border: 1px solid #ddd;">
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                         
                         <form method="POST" class="return-actions">
