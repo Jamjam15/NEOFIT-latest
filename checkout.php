@@ -27,34 +27,26 @@ $stmt->bind_result($contact);
 $stmt->fetch();
 $stmt->close();
 
-// Get selected items from POST data
-$selected_items = [];
-if (isset($_POST['selected_items']) && !empty($_POST['selected_items'])) {
-    $selected_items = json_decode($_POST['selected_items'], true);
-    error_log('Selected items received: ' . print_r($selected_items, true)); // Debug log
-}
+// Check if we're checking out a specific cart item or the entire cart
+$cart_id = $_GET['cart_id'] ?? null;
 
-// Check if we're checking out selected items or a specific cart item
-if (!empty($selected_items)) {
-    // Selected items checkout
-    $placeholders = str_repeat('?,', count($selected_items) - 1) . '?';
+if ($cart_id) {
+    // Single item checkout
     $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
             FROM cart c
             JOIN products p ON c.product_id = p.id
-            WHERE c.id IN ($placeholders) AND c.user_id = ?
-            ORDER BY c.added_at DESC";
-    
-    $params = array_merge($selected_items, [$user_id]);
-    $types = str_repeat('i', count($params));
-    
+            WHERE c.id = ? AND c.user_id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    error_log('SQL for selected items: ' . $sql); // Debug log
-    error_log('Parameters: ' . print_r($params, true)); // Debug log
+    $stmt->bind_param("ii", $cart_id, $user_id);
 } else {
-    // If no items selected, redirect back to cart
-    header('Location: cart.php');
-    exit;
+    // Full cart checkout
+    $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
+            FROM cart c
+            JOIN products p ON c.product_id = p.id
+            WHERE c.user_id = ?
+            ORDER BY c.added_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
 }
 
 $stmt->execute();
