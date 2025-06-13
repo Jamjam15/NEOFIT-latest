@@ -46,25 +46,6 @@ if (isset($_GET['saved'])) {
             line-height: 1.6;
         }
 
-        /* Header Styles */
-         /* Header Styles */
-         header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: #FFFFFF;
-            color: #000;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
 
         .logo {
             font-size: 24px;
@@ -95,18 +76,6 @@ if (isset($_GET['saved'])) {
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        .search-input {
-            padding: 8px 12px;
-            border-radius: 20px;
-            border: 1px solid #eee;
-            background-color: #f5f5f5;
-            width: 180px;
         }
 
         .user-icon, .cart-icon, .messages-icon {
@@ -912,13 +881,8 @@ if (isset($_GET['saved'])) {
     </style>
 </head>
 <body>
-<header>
-        <div class="header-container">
-            <a class="logo" href="landing_page.php">NEOFIT</a>
-            
-              
-        </div>
-    </header>
+<?php include 'header.php'; ?>
+
     <main class="main-content">
         <div class="settings-header">
             <div class="profile-picture-container">
@@ -1883,5 +1847,7 @@ if (isset($_GET['saved'])) {
             updateProvinceDropdown(currentRegion);
         }
     </script>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>

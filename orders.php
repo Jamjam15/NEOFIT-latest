@@ -691,6 +691,8 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
+<?php include 'header.php'; ?>
+
     <div class="container">
         <div class="header">
             <h1 class="page-title">My Orders</h1>
@@ -808,8 +810,8 @@ $result = $stmt->get_result();
                 <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep Return</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmCancelOrder()">Yes, Cancel Return</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep Order</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmCancelOrder()">Yes, Cancel Order</button>
             </div>
         </div>
     </div>    <!-- Return Order Modal -->    
