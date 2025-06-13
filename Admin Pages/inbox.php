@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
 include '../db.php';
 
@@ -25,23 +27,55 @@ if (isset($_POST['send_reply'])) {
     $stmt->bind_param("si", $reply, $message_id);
     $stmt->execute();
     $stmt->close();
+    header('Location: inbox.php?tab=sent'); 
+    exit();
 }
 
-// Get messages with pagination
+// Handle move to trash
+if (isset($_POST['move_to_trash'])) {
+    $message_id = $_POST['message_id'];
+    $stmt = $conn->prepare("UPDATE contact_messages SET status = 'deleted' WHERE id = ?");
+    $stmt->bind_param("i", $message_id);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Handle restore from trash
+if (isset($_POST['restore_message'])) {
+    $message_id = $_POST['message_id'];
+    $stmt = $conn->prepare("UPDATE contact_messages SET status = 'unread' WHERE id = ?");
+    $stmt->bind_param("i", $message_id);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Get messages with pagination and tab filter
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
-$status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'inbox'; // Default to inbox tab
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 $where_clause = "";
-if ($status_filter !== 'all') {
-    $where_clause .= " WHERE status = '$status_filter'";
+
+switch ($active_tab) {
+    case 'inbox':
+        $where_clause .= " WHERE status IN ('unread', 'read')";
+        break;
+    case 'sent':
+        $where_clause .= " WHERE status = 'replied'";
+        break;
+    case 'trash':
+        $where_clause .= " WHERE status = 'deleted'";
+        break;
+    default:
+        $where_clause .= " WHERE status IN ('unread', 'read')"; // Default to inbox
+        break;
 }
+
 if ($search) {
-    $where_clause .= $where_clause ? " AND" : " WHERE";
-    $where_clause .= " (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
+    $where_clause .= " AND (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
 }
 
 $sql = "SELECT * FROM contact_messages" . $where_clause . " ORDER BY created_at DESC LIMIT $offset, $per_page";
@@ -63,11 +97,58 @@ $total_pages = ceil($total_row['total'] / $per_page);
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .message-list {
-            background: white;
+        /* Original styles (before extensive modal CSS changes) */
+        .tabs-navigation {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+            font-weight: 500;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .tab-button.active {
+            background-color: white;
+            border-color: #ddd;
+            color: #333;
+            border-bottom: 1px solid white;
+        }
+
+        .tab-content-container {
+            background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .message-list {
+            background: none;
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 0;
         }
 
         .message-item {
@@ -77,6 +158,7 @@ $total_pages = ceil($total_row['total'] / $per_page);
             align-items: center;
             gap: 15px;
             transition: background-color 0.2s;
+            cursor: pointer;
         }
 
         .message-item:hover {
@@ -107,11 +189,6 @@ $total_pages = ceil($total_row['total'] / $per_page);
             color: #333;
         }
 
-        .message-date {
-            color: #666;
-            font-size: 0.9em;
-        }
-
         .message-subject {
             font-weight: 500;
             margin-bottom: 5px;
@@ -124,6 +201,24 @@ $total_pages = ceil($total_row['total'] / $per_page);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .message-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .message-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .message-actions .button-group {
+            display: flex;
+            gap: 10px;
         }
 
         .message-status {
@@ -148,9 +243,9 @@ $total_pages = ceil($total_row['total'] / $per_page);
             color: #f57c00;
         }
 
-        .message-actions {
-            display: flex;
-            gap: 10px;
+        .status-deleted {
+            background-color: #ffebee;
+            color: #c62828;
         }
 
         .action-button {
@@ -189,6 +284,15 @@ $total_pages = ceil($total_row['total'] / $per_page);
             background-color: #ffcdd2;
         }
 
+        .restore-button {
+            background-color: #e0f2f7;
+            color: #00796b;
+        }
+
+        .restore-button:hover {
+            background-color: #b2dfdb;
+        }
+
         .filters {
             display: flex;
             gap: 15px;
@@ -216,14 +320,6 @@ $total_pages = ceil($total_row['total'] / $per_page);
             top: 50%;
             transform: translateY(-50%);
             color: #666;
-        }
-
-        .status-filter {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9em;
-            background-color: white;
         }
 
         .pagination {
@@ -261,58 +357,68 @@ $total_pages = ceil($total_row['total'] / $per_page);
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .modal-content {
-            position: relative;
-            background-color: white;
-            margin: 50px auto;
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
             padding: 20px;
-            width: 90%;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
             max-width: 600px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .close-button {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 24px;
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            color: #666;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .modal-header {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
 
-        .modal-body {
-            margin-bottom: 20px;
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
         }
 
-        .message-details {
-            margin-bottom: 20px;
-        }
-
-        .message-details p {
+        .modal-body p {
             margin: 5px 0;
             color: #666;
         }
 
-        .message-details strong {
+        .modal-body strong {
             color: #333;
+        }
+
+        #modalReply {
+            margin-top: 15px;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
         }
 
         .reply-form textarea {
             width: 100%;
-            height: 150px;
+            height: 100px;
             padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            margin-bottom: 10px;
             resize: vertical;
         }
 
@@ -328,6 +434,15 @@ $total_pages = ceil($total_row['total'] / $per_page);
 
         .send-reply-button:hover {
             background-color: #1565c0;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
     </style>
 </head>
@@ -351,8 +466,11 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 </li>
                 <li class="active">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
-                </li>                <li onclick="window.location.href='manage_order_details_page.php'">
+
+                    <span>Messages</span>
+                </li>
+                <li onclick="window.location.href='manage_order_details_page.php'">
+
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
@@ -388,66 +506,141 @@ $total_pages = ceil($total_row['total'] / $per_page);
         </aside>
         
         <main class="main-content">
-            <h1 class="page-title">Inbox</h1>
+            <h1 class="page-title">Messages</h1>
             
-            <div class="filters">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search messages..." value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <select class="status-filter" id="statusFilter">
-                    <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Messages</option>
-                    <option value="unread" <?php echo $status_filter === 'unread' ? 'selected' : ''; ?>>Unread</option>
-                    <option value="read" <?php echo $status_filter === 'read' ? 'selected' : ''; ?>>Read</option>
-                    <option value="replied" <?php echo $status_filter === 'replied' ? 'selected' : ''; ?>>Replied</option>
-                </select>
+            <div class="tabs-navigation">
+                <div class="tab-button active" data-tab="inbox">Inbox</div>
+                <div class="tab-button" data-tab="sent">Sent</div>
+                <div class="tab-button" data-tab="trash">Trash</div>
             </div>
 
-            <div class="message-list">
-                <?php if ($result->num_rows > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                        <div class="message-item <?php echo $row['status'] === 'unread' ? 'unread' : ''; ?>">
-                            <input type="checkbox" class="message-checkbox" value="<?php echo $row['id']; ?>">
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-sender"><?php echo htmlspecialchars($row['name']); ?></span>
-                                    <span class="message-date"><?php echo date('M d, Y H:i', strtotime($row['created_at'])); ?></span>
-                                </div>
-                                <div class="message-subject"><?php echo htmlspecialchars($row['subject']); ?></div>
-                                <div class="message-preview"><?php echo htmlspecialchars(substr($row['message'], 0, 100)) . '...'; ?></div>
-                            </div>
-                            <span class="message-status status-<?php echo $row['status']; ?>">
-                                <?php echo ucfirst($row['status']); ?>
-                            </span>
-                            <div class="message-actions">
-                                <button class="action-button view-button" onclick="viewMessage(<?php echo $row['id']; ?>)">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                                <?php if ($row['status'] !== 'replied'): ?>
-                                    <button class="action-button reply-button" onclick="showReplyModal(<?php echo $row['id']; ?>)">
-                                        <i class="fas fa-reply"></i> Reply
-                                    </button>
-                                <?php endif; ?>
-                                <button class="action-button delete-button" onclick="deleteMessage(<?php echo $row['id']; ?>)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="message-item">
-                        <div class="message-content">
-                            <div class="message-subject">No messages found</div>
+            <div class="tab-content-container">
+                <div id="inboxContent" class="tab-pane active">
+                    <div class="filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInputInbox" placeholder="Search inbox..." value="<?php echo htmlspecialchars($search); ?>">
                         </div>
                     </div>
-                <?php endif; ?>
+                    <div class="message-list">
+                        <?php if ($active_tab === 'inbox' && $result->num_rows > 0): ?>
+                            <?php while($row = $result->fetch_assoc()): ?>
+                                <div class="message-item <?php echo $row['status'] === 'unread' ? 'unread' : ''; ?>" onclick="viewMessage(<?php echo $row['id']; ?>)">
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <span class="message-sender"><?php echo htmlspecialchars($row['name']); ?></span>
+                                        </div>
+                                        <div class="message-subject"><?php echo htmlspecialchars($row['subject']); ?></div>
+                                        <div class="message-preview"><?php echo htmlspecialchars(substr($row['message'], 0, 100)) . '...'; ?></div>
+                                    </div>
+                                    <div class="message-actions">
+                                        <span class="message-date"><?php echo date('M d, Y H:i', strtotime($row['created_at'])); ?></span>
+                                        <div class="button-group">
+                                            <button class="action-button reply-button" onclick="showReplyModal(<?php echo $row['id']; ?>)">
+                                                <i class="fas fa-reply"></i> Reply
+                                            </button>
+                                            <button class="action-button delete-button" onclick="moveToTrash(<?php echo $row['id']; ?>)">
+                                                <i class="fas fa-trash"></i> Move to Trash
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php elseif ($active_tab === 'inbox'): ?>
+                            <div class="message-item">
+                                <div class="message-content">
+                                    <div class="message-subject">No messages found in Inbox.</div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div id="sentContent" class="tab-pane <?php echo $active_tab === 'sent' ? 'active' : ''; ?>">
+                    <div class="filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInputSent" placeholder="Search sent messages..." value="<?php echo htmlspecialchars($search); ?>">
+                        </div>
+                    </div>
+                    <div class="message-list">
+                        <?php if ($active_tab === 'sent' && $result->num_rows > 0): ?>
+                            <?php while($row = $result->fetch_assoc()): ?>
+                                <div class="message-item" onclick="viewMessage(<?php echo $row['id']; ?>)">
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <span class="message-sender"><?php echo htmlspecialchars($row['name']); ?></span>
+                                        </div>
+                                        <div class="message-subject"><?php echo htmlspecialchars($row['subject']); ?></div>
+                                        <div class="message-preview"><?php echo htmlspecialchars(substr($row['message'], 0, 100)) . '...'; ?></div>
+                                    </div>
+                                    <div class="message-actions">
+                                        <span class="message-date"><?php echo date('M d, Y H:i', strtotime($row['created_at'])); ?></span>
+                                        <div class="button-group">
+                                            <button class="action-button delete-button" onclick="moveToTrash(<?php echo $row['id']; ?>)">
+                                                <i class="fas fa-trash"></i> Move to Trash
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php elseif ($active_tab === 'sent'): ?>
+                            <div class="message-item">
+                                <div class="message-content">
+                                    <div class="message-subject">No sent messages found.</div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div id="trashContent" class="tab-pane <?php echo $active_tab === 'trash' ? 'active' : ''; ?>">
+                    <div class="filters">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInputTrash" placeholder="Search trash..." value="<?php echo htmlspecialchars($search); ?>">
+                        </div>
+                    </div>
+                    <div class="message-list">
+                        <?php if ($active_tab === 'trash' && $result->num_rows > 0): ?>
+                            <?php while($row = $result->fetch_assoc()): ?>
+                                <div class="message-item" onclick="viewMessage(<?php echo $row['id']; ?>)">
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <span class="message-sender"><?php echo htmlspecialchars($row['name']); ?></span>
+                                        </div>
+                                        <div class="message-subject"><?php echo htmlspecialchars($row['subject']); ?></div>
+                                        <div class="message-preview"><?php echo htmlspecialchars(substr($row['message'], 0, 100)) . '...'; ?></div>
+                                    </div>
+                                    <div class="message-actions">
+                                        <span class="message-date"><?php echo date('M d, Y H:i', strtotime($row['created_at'])); ?></span>
+                                        <div class="button-group">
+                                            <button class="action-button restore-button" onclick="restoreMessage(<?php echo $row['id']; ?>)">
+                                                <i class="fas fa-undo"></i> Restore
+                                            </button>
+                                            <button class="action-button delete-button" onclick="deleteMessagePermanently(<?php echo $row['id']; ?>)">
+                                                <i class="fas fa-trash"></i> Delete Permanently
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php elseif ($active_tab === 'trash'): ?>
+                            <div class="message-item">
+                                <div class="message-content">
+                                    <div class="message-subject">No messages found in Trash.</div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
 
             <?php if ($total_pages > 1): ?>
                 <div class="pagination">
                     <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                         <button class="page-button <?php echo $i === $page ? 'active' : ''; ?>" 
-                                onclick="window.location.href='?page=<?php echo $i; ?>&status=<?php echo $status_filter; ?>&search=<?php echo urlencode($search); ?>'">
+                                onclick="window.location.href='?tab=<?php echo $active_tab; ?>&page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>'">
                             <?php echo $i; ?>
                         </button>
                     <?php endfor; ?>
@@ -467,13 +660,27 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 <div class="message-details">
                     <p><strong>From:</strong> <span id="modalSender"></span></p>
                     <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+                    <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
                     <p><strong>Date:</strong> <span id="modalDate"></span></p>
-                    <p><strong>Message:</strong></p>
-                    <div id="modalMessage" style="white-space: pre-wrap;"></div>
                 </div>
+                <div id="modalMessage" style="white-space: pre-wrap;"></div>
                 <div id="modalReply" style="display: none;">
                     <h3>Your Reply:</h3>
                     <div id="modalReplyContent" style="white-space: pre-wrap;"></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="action-button reply-button" id="modalReplyButton" style="display: none;">
+                        <i class="fas fa-reply"></i> Reply
+                    </button>
+                    <button class="action-button delete-button" id="modalMoveToTrashButton" style="display: none;">
+                        <i class="fas fa-trash"></i> Move to Trash
+                    </button>
+                    <button class="action-button restore-button" id="modalRestoreButton" style="display: none;">
+                        <i class="fas fa-undo"></i> Restore
+                    </button>
+                    <button class="action-button delete-button" id="modalDeletePermanentlyButton" style="display: none;">
+                        <i class="fas fa-trash"></i> Delete Permanently
+                    </button>
                 </div>
             </div>
         </div>
@@ -489,9 +696,11 @@ $total_pages = ceil($total_row['total'] / $per_page);
             <div class="modal-body">
                 <form id="replyForm" method="POST">
                     <input type="hidden" name="message_id" id="replyMessageId">
-                    <div class="message-details">
-                        <p><strong>To:</strong> <span id="replyTo"></span></p>
-                        <p><strong>Subject:</strong> <span id="replySubject"></span></p>
+                    <div class="message-container">
+                        <div class="message-details">
+                            <p><strong>To:</strong> <span id="replyTo"></span></p>
+                            <p><strong>Subject:</strong> <span id="replySubject"></span></p>
+                        </div>
                     </div>
                     <div class="reply-form">
                         <textarea name="reply" id="replyText" required placeholder="Type your reply here..."></textarea>
@@ -503,22 +712,64 @@ $total_pages = ceil($total_row['total'] / $per_page);
     </div>
 
     <script>
-        // Search and filter functionality
-        document.getElementById('searchInput').addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                const search = this.value;
-                const status = document.getElementById('statusFilter').value;
-                window.location.href = `?search=${encodeURIComponent(search)}&status=${status}`;
+        // Tab switching functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const tab = this.dataset.tab;
+                window.location.href = `?tab=${tab}`;
+            });
+        });
+
+        // Set active tab on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'inbox';
+            document.querySelectorAll('.tab-button').forEach(button => {
+                if (button.dataset.tab === activeTab) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                if (pane.id === `${activeTab}Content`) {
+                    pane.classList.add('active');
+                } else {
+                    pane.classList.remove('active');
+                }
+            });
+
+            // Set initial search value based on active tab
+            const searchInput = document.getElementById(`searchInput${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`);
+            if (searchInput) {
+                const currentSearch = urlParams.get('search') || '';
+                searchInput.value = currentSearch;
             }
         });
 
-        document.getElementById('statusFilter').addEventListener('change', function() {
-            const search = document.getElementById('searchInput').value;
-            const status = this.value;
-            window.location.href = `?search=${encodeURIComponent(search)}&status=${status}`;
+        // Search functionality for each tab
+        document.getElementById('searchInputInbox').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                const search = this.value;
+                window.location.href = `?tab=inbox&search=${encodeURIComponent(search)}`;
+            }
         });
 
-        // View message functionality
+        document.getElementById('searchInputSent').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                const search = this.value;
+                window.location.href = `?tab=sent&search=${encodeURIComponent(search)}`;
+            }
+        });
+
+        document.getElementById('searchInputTrash').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                const search = this.value;
+                window.location.href = `?tab=trash&search=${encodeURIComponent(search)}`;
+            }
+        });
+
+        // View message functionality (original, with subject and blue border)
         function viewMessage(id) {
             fetch(`get_message.php?id=${id}`)
                 .then(response => response.json())
@@ -536,6 +787,45 @@ $total_pages = ceil($total_row['total'] / $per_page);
                         document.getElementById('modalReply').style.display = 'none';
                     }
                     
+                    // Show/hide action buttons in modal based on message status
+                    const replyButton = document.getElementById('modalReplyButton');
+                    const moveToTrashButton = document.getElementById('modalMoveToTrashButton');
+                    const restoreButton = document.getElementById('modalRestoreButton');
+                    const deletePermanentlyButton = document.getElementById('modalDeletePermanentlyButton');
+
+                    replyButton.style.display = 'none';
+                    moveToTrashButton.style.display = 'none';
+                    restoreButton.style.display = 'none';
+                    deletePermanentlyButton.style.display = 'none';
+
+                    if (data.status === 'unread' || data.status === 'read') {
+                        replyButton.style.display = 'inline-flex';
+                        moveToTrashButton.style.display = 'inline-flex';
+                    } else if (data.status === 'replied') {
+                        moveToTrashButton.style.display = 'inline-flex';
+                    } else if (data.status === 'deleted') {
+                        restoreButton.style.display = 'inline-flex';
+                        deletePermanentlyButton.style.display = 'inline-flex';
+                    }
+
+                    // Assign event listeners to modal action buttons (original onclick assignment)
+                    replyButton.onclick = () => {
+                        closeModal('viewModal');
+                        showReplyModal(data.id);
+                    };
+                    moveToTrashButton.onclick = () => {
+                        closeModal('viewModal');
+                        moveToTrash(data.id);
+                    };
+                    restoreButton.onclick = () => {
+                        closeModal('viewModal');
+                        restoreMessage(data.id);
+                    };
+                    deletePermanentlyButton.onclick = () => {
+                        closeModal('viewModal');
+                        deleteMessagePermanently(data.id);
+                    };
+
                     document.getElementById('viewModal').style.display = 'block';
                 });
         }
@@ -553,14 +843,51 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 });
         }
 
-        // Close modal functionality
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        // Move to trash functionality
+        function moveToTrash(id) {
+            if (confirm('Are you sure you want to move this message to trash?')) {
+                fetch('inbox.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `move_to_trash=1&message_id=${id}`
+                })
+                .then(response => response.text())
+                .then(data => {
+                    location.reload(); // Original reload behavior
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error moving message to trash.');
+                });
+            }
         }
 
-        // Delete message functionality
-        function deleteMessage(id) {
-            if (confirm('Are you sure you want to delete this message?')) {
+        // Restore message functionality
+        function restoreMessage(id) {
+            if (confirm('Are you sure you want to restore this message from trash?')) {
+                fetch('inbox.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `restore_message=1&message_id=${id}`
+                })
+                .then(response => response.text())
+                .then(data => {
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error restoring message.');
+                });
+            }
+        }
+
+        // Delete message permanently functionality
+        function deleteMessagePermanently(id) {
+            if (confirm('Are you sure you want to permanently delete this message? This action cannot be undone.')) {
                 fetch('delete_message.php', {
                     method: 'POST',
                     headers: {
@@ -573,18 +900,28 @@ $total_pages = ceil($total_row['total'] / $per_page);
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert('Error deleting message');
+                        alert('Error deleting message: ' + data.message);
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting message permanently.');
                 });
             }
         }
 
+        // Close modal functionality
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
         // Close modals when clicking outside
         window.onclick = function(event) {
-            if (event.target.className === 'modal') {
+            if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
             }
         }
+
     </script>
 </body>
-</html> 
+</html>

@@ -27,7 +27,7 @@
                 </li>
                 <li>
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                    <span>Messages</span>
                 </li>
                 <li>
                     <i class="fas fa-list"></i>

@@ -214,6 +214,10 @@ $product = $result->fetch_assoc();
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </li>
+                <li onclick="window.location.href='inbox.php'">
+                    <i class="fas fa-inbox"></i>
+                    <span>Messages</span>
+                </li>
             </ul>
         </aside>
         
