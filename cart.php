@@ -12,7 +12,8 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Get cart items
-$sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront,
+$sql = "SELECT c.id, c.product_id, c.size, SUM(c.quantity) as quantity, 
+        p.product_name, p.product_price, p.photoFront,
         CASE c.size 
             WHEN 'small' THEN p.quantity_small
             WHEN 'medium' THEN p.quantity_medium
@@ -20,7 +21,8 @@ $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront,
         END as stock
         FROM cart c
         JOIN products p ON c.product_id = p.id
-        WHERE c.user_id = ?";
+        WHERE c.user_id = ?
+        GROUP BY c.product_id, c.size";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
