@@ -100,6 +100,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-chart-line"></i>
                     <span>Dashboard</span>
                 </li>
+                <li onclick="window.location.href='inbox.php'">
+                    <i class="fas fa-inbox"></i>
+                    <span>Inbox</span>
+                </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
