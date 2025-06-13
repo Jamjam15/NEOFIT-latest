@@ -922,104 +922,72 @@ if (isset($_GET['saved'])) {
                 <div class="address-form">
                     <!-- Region Field -->
                     <div class="address-group">
-                        <label for="region">Region</label>
-                        <select id="region" name="region" required>
-                            <option value="" disabled <?php echo empty($region) ? 'selected' : ''; ?>>Select Region</option>
-                            <option value="National Capital Region" <?php echo ($region === 'National Capital Region') ? 'selected' : ''; ?>>National Capital Region (NCR)</option>
-                            <option value="Cordillera Administrative Region" <?php echo ($region === 'Cordillera Administrative Region') ? 'selected' : ''; ?>>Cordillera Administrative Region (CAR)</option>
-                            <option value="Ilocos Region" <?php echo ($region === 'Ilocos Region') ? 'selected' : ''; ?>>Ilocos Region (Region I)</option>
-                            <option value="Cagayan Valley" <?php echo ($region === 'Cagayan Valley') ? 'selected' : ''; ?>>Cagayan Valley (Region II)</option>
-                            <option value="Central Luzon" <?php echo ($region === 'Central Luzon') ? 'selected' : ''; ?>>Central Luzon (Region III)</option>
-                            <option value="CALABARZON" <?php echo ($region === 'CALABARZON') ? 'selected' : ''; ?>>CALABARZON (Region IV-A)</option>
-                            <option value="MIMAROPA" <?php echo ($region === 'MIMAROPA') ? 'selected' : ''; ?>>MIMAROPA (Region IV-B)</option>
-                            <option value="Bicol Region" <?php echo ($region === 'Bicol Region') ? 'selected' : ''; ?>>Bicol Region (Region V)</option>
-                            <option value="Western Visayas" <?php echo ($region === 'Western Visayas') ? 'selected' : ''; ?>>Western Visayas (Region VI)</option>
-                            <option value="Central Visayas" <?php echo ($region === 'Central Visayas') ? 'selected' : ''; ?>>Central Visayas (Region VII)</option>
-                            <option value="Eastern Visayas" <?php echo ($region === 'Eastern Visayas') ? 'selected' : ''; ?>>Eastern Visayas (Region VIII)</option>
-                            <option value="Zamboanga Peninsula" <?php echo ($region === 'Zamboanga Peninsula') ? 'selected' : ''; ?>>Zamboanga Peninsula (Region IX)</option>
-                            <option value="Northern Mindanao" <?php echo ($region === 'Northern Mindanao') ? 'selected' : ''; ?>>Northern Mindanao (Region X)</option>
-                            <option value="Davao Region" <?php echo ($region === 'Davao Region') ? 'selected' : ''; ?>>Davao Region (Region XI)</option>
-                            <option value="SOCCSKSARGEN" <?php echo ($region === 'SOCCSKSARGEN') ? 'selected' : ''; ?>>SOCCSKSARGEN (Region XII)</option>
-                            <option value="Caraga" <?php echo ($region === 'Caraga') ? 'selected' : ''; ?>>Caraga (Region XIII)</option>
-                            <option value="Bangsamoro" <?php echo ($region === 'Bangsamoro') ? 'selected' : ''; ?>>Bangsamoro (BARMM)</option>
+                        <label for="region">Region</label>                        <select id="region" name="region" required>
+                            <option value="" selected>Select Region</option>
+                            <option value="National Capital Region">National Capital Region (NCR)</option>
+                            <option value="Cordillera Administrative Region">Cordillera Administrative Region (CAR)</option>
+                            <option value="Ilocos Region">Ilocos Region (Region I)</option>
+                            <option value="Cagayan Valley">Cagayan Valley (Region II)</option>
+                            <option value="Central Luzon">Central Luzon (Region III)</option>
+                            <option value="CALABARZON">CALABARZON (Region IV-A)</option>
+                            <option value="MIMAROPA">MIMAROPA (Region IV-B)</option>
+                            <option value="Bicol Region">Bicol Region (Region V)</option>
+                            <option value="Western Visayas">Western Visayas (Region VI)</option>
+                            <option value="Central Visayas">Central Visayas (Region VII)</option>
+                            <option value="Eastern Visayas">Eastern Visayas (Region VIII)</option>
+                            <option value="Zamboanga Peninsula">Zamboanga Peninsula (Region IX)</option>
+                            <option value="Northern Mindanao">Northern Mindanao (Region X)</option>
+                            <option value="Davao Region">Davao Region (Region XI)</option>
+                            <option value="SOCCSKSARGEN">SOCCSKSARGEN (Region XII)</option>
+                            <option value="Caraga">Caraga (Region XIII)</option>
+                            <option value="Bangsamoro">Bangsamoro (BARMM)</option>
                         </select>
                     </div>
 
                     <!-- Province Field -->
                     <div class="address-group">
-                        <label for="province">Province</label>
-                        <select id="province" name="province" required>
-                            <option value="" disabled <?php echo empty($province) ? 'selected' : ''; ?>>Select Province</option>
-                            <?php if (!empty($region)): ?>
-                                <?php 
-                                $provinces = [];
-                                switch($region) {
-                                    case 'National Capital Region':
-                                        $provinces = ['Metro Manila'];
-                                        break;
-                                    case 'Cordillera Administrative Region':
-                                        $provinces = ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province'];
-                                        break;
-                                    // ... add other cases for each region
-                                }
-                                foreach($provinces as $p): 
-                                ?>
-                                    <option value="<?php echo htmlspecialchars($p); ?>" <?php echo ($province === $p) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($p); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <label for="province">Province</label>                        <select id="province" name="province" required>
+                            <option value="" selected>Select Province</option>
+                            <!-- Provinces will be populated via JavaScript based on selected region -->
                         </select>
                     </div>
 
                     <!-- City Field -->
                     <div class="address-group">
-                        <label for="city">City/Municipality</label>
-                        <input type="text" id="city" name="city" 
+                        <label for="city">City/Municipality</label>                        <input type="text" id="city" name="city" 
                                placeholder="Enter City/Municipality" 
-                               value="<?php echo htmlspecialchars($city); ?>"
                                required>
                     </div>
 
                     <!-- Barangay Field -->
                     <div class="address-group">
-                        <label for="barangay">Barangay</label>
-                        <input type="text" id="barangay" name="barangay" 
+                        <label for="barangay">Barangay</label>                        <input type="text" id="barangay" name="barangay" 
                                placeholder="Enter Barangay" 
-                               value="<?php echo htmlspecialchars($barangay); ?>"
                                required>
                     </div>
 
                     <!-- House Details Fields -->
                     <div class="address-group">
-                        <label for="house_number">House/Unit Number</label>
-                        <input type="text" id="house_number" name="house_number" 
+                        <label for="house_number">House/Unit Number</label>                        <input type="text" id="house_number" name="house_number" 
                                placeholder="House/Unit Number" 
-                               value="<?php echo htmlspecialchars($house_number); ?>"
                                required>
                     </div>
 
                     <div class="address-group">
-                        <label for="street">Street Name</label>
-                        <input type="text" id="street" name="street" 
+                        <label for="street">Street Name</label>                        <input type="text" id="street" name="street" 
                                placeholder="Street Name" 
-                               value="<?php echo htmlspecialchars($street); ?>"
                                required>
                     </div>
 
                     <div class="address-group">
-                        <label for="place_type">Subdivision/Village/Building (Optional)</label>
-                        <input type="text" id="place_type" name="place_type" 
-                               placeholder="Subdivision/Village/Building" 
-                               value="<?php echo htmlspecialchars($place_type); ?>">
+                        <label for="place_type">Subdivision/Village/Building (Optional)</label>                        <input type="text" id="place_type" name="place_type" 
+                               placeholder="Subdivision/Village/Building">
                     </div>
 
                     <!-- Contact Field -->
                     <div class="address-group">
-                        <label for="contact">Contact Number</label>
-                        <input type="tel" id="contact" name="contact" 
+                        <label for="contact">Contact Number</label>                        <input type="tel" id="contact" name="contact" 
                                placeholder="Enter your contact number (e.g., 09123456789)" 
-                               value="<?php echo htmlspecialchars($contact); ?>"
                                pattern="[0-9]{11}" 
                                title="Please enter a valid contact number (must start with 09 and be 11 digits)"
                                required>
