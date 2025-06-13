@@ -194,155 +194,189 @@ $total_amount = 0;
     <?php include 'header.php'; ?>
      
     <div class="container">
-        <h1 class="cart-title">Shopping Cart</h1>
+         <h1 class="cart-title">Shopping Cart</h1>
 
-        <?php if ($result->num_rows > 0): ?>
-            <div class="cart-items">
-                <?php 
-                while ($item = $result->fetch_assoc()):
-                    $subtotal = $item['quantity'] * $item['product_price'];
-                    $total_amount += $subtotal;
-                ?>
-                    <div class="cart-item" data-id="<?php echo $item['id']; ?>">
-                        <img src="Admin Pages/<?php echo $item['photoFront']; ?>" alt="<?php echo $item['product_name']; ?>" class="item-image">
-                        <div class="item-details">
-                            <div class="item-name"><?php echo $item['product_name']; ?></div>
-                            <div class="item-size">Size: <?php echo strtoupper($item['size']); ?></div>
-                            <div class="item-price">₱<?php echo number_format($item['product_price'], 2); ?></div>
+            <?php if ($result->num_rows > 0): ?>
+                <!-- Select All Checkbox -->
+                <div class="select-all-container">
+                    <label>
+                        <input type="checkbox" id="select-all">
+                        Select All
+                    </label>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <?php 
+                    while ($item = $result->fetch_assoc()):
+                        $subtotal = $item['quantity'] * $item['product_price'];
+                        $total_amount += $subtotal;
+                    ?>
+                        <div class="cart-item" data-id="<?php echo $item['id']; ?>">
+                            <input type="checkbox" class="item-checkbox" name="selected_items[]" value="<?php echo $item['id']; ?>">
+                            <img src="Admin Pages/<?php echo $item['photoFront']; ?>" alt="<?php echo $item['product_name']; ?>" class="item-image">
+                            <div class="item-details">
+                                <div class="item-name"><?php echo $item['product_name']; ?></div>
+                                <div class="item-size">Size: <?php echo strtoupper($item['size']); ?></div>
+                                <div class="item-price">₱<?php echo number_format($item['product_price'], 2); ?></div>
+                            </div>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn decrease">-</button>
+                                <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1">
+                                <button class="quantity-btn increase">+</button>
+                            </div>
+                            <button class="remove-btn">×</button>
                         </div>
-                        <div class="quantity-controls">
-                            <button class="quantity-btn decrease">-</button>
-                            <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1">
-                            <button class="quantity-btn increase">+</button>
-                        </div>
-                        <button class="remove-btn">×</button>
+                    <?php endwhile; ?>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₱<?php echo number_format($total_amount, 2); ?></span>
                     </div>
-                <?php endwhile; ?>
-            </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span>₱<?php echo number_format($total_amount, 2); ?></span>
+                    </div>
 
-            <div class="cart-summary">
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>₱<?php echo number_format($total_amount, 2); ?></span>
+                 <form id="checkout-form" action="checkout.php" method="GET">
+                    <input type="hidden" name="cart_ids" id="selected-items-input">
+                    <button type="submit" class="checkout-btn">Proceed to Checkout</button>
+                </form>
                 </div>
-                <div class="summary-row">
-                    <span>Shipping</span>
-                    <span>Free</span>
+
+
+            <?php else: ?>
+                <div class="empty-cart">
+                    <p>Your cart is empty</p>
+                    <a href="landing_page.php" class="continue-shopping">Continue Shopping</a>
                 </div>
-                <div class="summary-row total">
-                    <span>Total</span>
-                    <span>₱<?php echo number_format($total_amount, 2); ?></span>
-                </div>
-                <button class="checkout-btn">Proceed to Checkout</button>
-            </div>
-        <?php else: ?>
-            <div class="empty-cart">
-                <p>Your cart is empty</p>
-                <a href="landing_page.php" class="continue-shopping">Continue Shopping</a>
-            </div>
-        <?php endif; ?>
-    </div>
+            <?php endif; ?>
+        </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const cartItems = document.querySelectorAll('.cart-item');
+                document.addEventListener('DOMContentLoaded', function () {
+                    const cartItems = document.querySelectorAll('.cart-item');
+                    const checkoutForm = document.getElementById('checkout-form');
+                    const selectAllCheckbox = document.getElementById('select-all');
+                    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+                    const hiddenInput = document.getElementById('selected-items-input');
 
-        cartItems.forEach(item => {
-            const decreaseBtn = item.querySelector('.decrease');
-            const increaseBtn = item.querySelector('.increase');
-            const quantityInput = item.querySelector('.quantity-input');
-            const removeBtn = item.querySelector('.remove-btn');
-            const itemId = item.dataset.id;
+                    // QUANTITY + REMOVE BUTTONS
+                    cartItems.forEach(item => {
+                        const decreaseBtn = item.querySelector('.decrease');
+                        const increaseBtn = item.querySelector('.increase');
+                        const quantityInput = item.querySelector('.quantity-input');
+                        const removeBtn = item.querySelector('.remove-btn');
+                        const itemId = item.dataset.id;
 
-            // Update quantity
-            function updateQuantity(newQuantity) {
-                const formData = new FormData();
-                formData.append('cart_id', itemId);
-                formData.append('quantity', newQuantity);
-
-                fetch('update_cart.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        cart_id: itemId,
-                        quantity: newQuantity  // 👈 this was missing
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Error updating quantity');
-                        quantityInput.value = data.current_quantity || quantityInput.value;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating quantity');
-                });
-
-            }
-
-            // Decrease quantity
-            decreaseBtn.addEventListener('click', () => {
-                const currentValue = parseInt(quantityInput.value);
-                if (currentValue > 1) {
-                    updateQuantity(currentValue - 1);
-                }
-            });
-
-            // Increase quantity
-            increaseBtn.addEventListener('click', () => {
-                const currentValue = parseInt(quantityInput.value);
-                updateQuantity(currentValue + 1);
-            });
-
-            // Manual quantity input
-            quantityInput.addEventListener('change', () => {
-                let value = parseInt(quantityInput.value);
-                if (isNaN(value) || value < 1) {
-                    value = 1;
-                }
-                updateQuantity(value);
-            });
-
-            // Remove item
-            removeBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to remove this item?')) {
-                    fetch('remove_from_cart.php', {
-                        method: 'POST',
-                        body: JSON.stringify({ cart_id: itemId }),
-                        headers: {
-                            'Content-Type': 'application/json'
+                        function updateQuantity(newQuantity) {
+                            fetch('update_cart.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    cart_id: itemId,
+                                    quantity: newQuantity
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    location.reload();
+                                } else {
+                                    alert(data.message || 'Error updating quantity');
+                                    quantityInput.value = data.current_quantity || quantityInput.value;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error updating quantity');
+                            });
                         }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert(data.message || 'Error removing item');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error removing item');
+
+                        // Event: Decrease quantity
+                        decreaseBtn.addEventListener('click', () => {
+                            const currentValue = parseInt(quantityInput.value);
+                            if (currentValue > 1) {
+                                updateQuantity(currentValue - 1);
+                            }
+                        });
+
+                        // Event: Increase quantity
+                        increaseBtn.addEventListener('click', () => {
+                            const currentValue = parseInt(quantityInput.value);
+                            updateQuantity(currentValue + 1);
+                        });
+
+                        // Event: Manual input
+                        quantityInput.addEventListener('change', () => {
+                            let value = parseInt(quantityInput.value);
+                            if (isNaN(value) || value < 1) value = 1;
+                            updateQuantity(value);
+                        });
+
+                        // Event: Remove item
+                        removeBtn.addEventListener('click', () => {
+                            if (confirm('Are you sure you want to remove this item?')) {
+                                fetch('remove_from_cart.php', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ cart_id: itemId })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        location.reload();
+                                    } else {
+                                        alert(data.message || 'Error removing item');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error removing item');
+                                });
+                            }
+                        });
                     });
-                }
-            });
-        });
 
-        // Proceed to checkout
-        const checkoutBtn = document.querySelector('.checkout-btn');
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', () => {
-                window.location.href = 'checkout.php';
-            });
-        }
-    });
-    </script>
+                    // SELECT ALL Functionality
+                    selectAllCheckbox.addEventListener('change', function () {
+                        itemCheckboxes.forEach(cb => cb.checked = this.checked);
+                    });
+
+                    itemCheckboxes.forEach(cb => {
+                        cb.addEventListener('change', function () {
+                            if (!this.checked) {
+                                selectAllCheckbox.checked = false;
+                            } else if ([...itemCheckboxes].every(cb => cb.checked)) {
+                                selectAllCheckbox.checked = true;
+                            }
+                        });
+                    });
+
+                    // CHECKOUT Form Submission
+                    checkoutForm.addEventListener('submit', function (e) {
+                        const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked'))
+                                                .map(cb => cb.value);
+
+                        if (selectedIds.length === 0) {
+                            e.preventDefault();
+                            alert('Please select at least one item to checkout.');
+                            return;
+                        }
+
+                        hiddenInput.value = selectedIds.join(',');
+                    });
+                });
+                </script>
+
 </body>
 </html>
