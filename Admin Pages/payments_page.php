@@ -366,6 +366,30 @@ require_once 'payment_functions.php';
             }
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateFilter = document.getElementById('date-filter');
+            
+            // Clear the date input on page load
+            dateFilter.value = '';
+            
+            // Add event listener for date changes
+            dateFilter.addEventListener('change', function() {
+                if (this.value) {
+                    // Format the date for display
+                    const date = new Date(this.value);
+                    const formattedDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    this.setAttribute('data-date', formattedDate);
+                } else {
+                    this.removeAttribute('data-date');
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <?php 
@@ -453,7 +477,7 @@ require_once 'payment_functions.php';
                         <option value="pending">Pending</option>
                         <option value="failed">Failed</option>
                     </select>
-                    <input type="date" class="date-filter" id="date-filter">
+                    <input type="date" class="date-filter" id="date-filter" placeholder="Select Date">
                     <button class="btn-apply" id="apply-filters">Apply Filters</button>
                 </div>
 
