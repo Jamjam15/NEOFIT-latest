@@ -248,6 +248,11 @@ $result = $stmt->get_result();
             color: #383d41;
         }
 
+        .status-return-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
         .shipping-info {
             margin-top: 15px;
             padding: 15px;
@@ -368,6 +373,107 @@ $result = $stmt->get_result();
 
         .view-receipt-btn i {
             font-size: 14px;
+        }
+
+        .return-btn, .cancel-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+            color: white;
+        }
+
+        .return-btn {
+            background-color: #ffa500;
+        }
+
+        .return-btn:hover {
+            background-color: #e69500;
+        }
+
+        .cancel-btn {
+            background-color: #dc3545;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c82333;
+        }
+
+        .button-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .modal-btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
+        .modal-btn-confirm {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background-color: #c82333;
         }
 
         .receipt-overlay {
@@ -533,10 +639,19 @@ $result = $stmt->get_result();
                             <div class="order-actions">
                                 <div class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
                                     <?php echo htmlspecialchars($order['status']); ?>
-                                </div>
-                                <button onclick="viewReceipt(<?php echo $order['id']; ?>)" class="view-receipt-btn">
+                                </div>                                <button onclick="viewReceipt(<?php echo $order['id']; ?>)" class="view-receipt-btn">
                                     <i class="fas fa-receipt"></i> View Receipt
                                 </button>
+                                <?php if ($order['status'] === 'Delivered'): ?>
+                                    <button class="return-btn" onclick="openReturnModal(<?php echo $order['id']; ?>)">
+                                        <i class="fas fa-undo"></i> Return Order
+                                    </button>
+                                <?php endif; ?>
+                                <?php if ($order['status'] !== 'Delivered' && $order['status'] !== 'Cancelled'): ?>
+                                    <button class="cancel-btn" onclick="openCancelModal(<?php echo $order['id']; ?>)">
+                                        <i class="fas fa-times"></i> Cancel Order
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -552,6 +667,38 @@ $result = $stmt->get_result();
     </div>
 
     <?php include 'footer.php'; ?>
+
+    <!-- Cancel Order Modal -->
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cancel Order</h3>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep Order</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmCancelOrder()">Yes, Cancel Order</button>
+            </div>
+        </div>
+    </div>    <!-- Return Order Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Return Order</h3>
+            </div>
+            <div class="modal-body">
+                <p>Please provide a reason for returning this order:</p>
+                <textarea id="returnReason" style="width: 100%; min-height: 100px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter your reason for returning this order..."></textarea>
+                <p class="note" style="color: #666; font-size: 14px;">Note: Your return request will need to be approved by an administrator.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('returnModal')">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmReturnOrder()">Submit Return Request</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
@@ -672,6 +819,87 @@ $result = $stmt->get_result();
         document.querySelector('.receipt-container').addEventListener('click', function(event) {
             event.stopPropagation();
         });
+
+        function openCancelModal(orderId) {
+            currentOrderId = orderId;
+            const modal = document.getElementById('cancelModal');
+            modal.style.display = 'flex';
+        }
+
+        function openReturnModal(orderId) {
+            currentOrderId = orderId;
+            const modal = document.getElementById('returnModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+            currentOrderId = null;
+        }
+
+        function confirmCancelOrder() {
+            if (!currentOrderId) return;
+            
+            // Perform the cancel order action (e.g., AJAX request)
+            fetch('cancel_order.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ order_id: currentOrderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close the modal
+                    closeModal('cancelModal');
+                    // Refresh the page or update the UI accordingly
+                    location.reload();
+                } else {
+                    alert('Error cancelling order: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error cancelling order:', error);
+                alert('Error cancelling order. Please try again.');
+            });
+        }        function confirmReturnOrder() {
+            if (!currentOrderId) return;
+            
+            const reason = document.getElementById('returnReason').value.trim();
+            if (!reason) {
+                alert('Please provide a reason for returning the order.');
+                return;
+            }
+            
+            // Perform the return order action (e.g., AJAX request)
+            fetch('return_order.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    order_id: currentOrderId,
+                    return_reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close the modal
+                    closeModal('returnModal');
+                    // Refresh the page or update the UI accordingly
+                    location.reload();
+                } else {
+                    alert('Error returning order: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error returning order:', error);
+                alert('Error returning order. Please try again.');
+            });
+        }
     </script>
 </body>
 </html>

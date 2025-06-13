@@ -2,6 +2,7 @@
 session_start();
 include 'db.php';
 
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -190,6 +191,8 @@ $total_amount = 0;
     </style>
 </head>
 <body>
+    <?php include 'header.php'; ?>
+     
     <div class="container">
         <h1 class="cart-title">Shopping Cart</h1>
 
