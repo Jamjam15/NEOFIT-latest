@@ -630,13 +630,14 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-
-                    <span>Messages</span>
-                </li>
-                <li class="active">
-
+                    <span>Inbox</span>
+                </li>                <li class="active">
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
+                </li>
+                <li onclick="window.location.href='manage_returns.php'">
+                    <i class="fas fa-undo"></i>
+                    <span>Returns</span>
                 </li>
                 <li onclick="window.location.href='manage_returns.php'">
                     <i class="fas fa-undo"></i>
