@@ -39,10 +39,12 @@ $sql = "SELECT o.*,
                oi.size,
                p.product_price as price,
                (oi.quantity * p.product_price) as item_total,
-               o.user_id
+               o.user_id,
+               u.first_name
         FROM orders o 
         LEFT JOIN order_items oi ON o.id = oi.order_id
         LEFT JOIN products p ON oi.product_id = p.id 
+        LEFT JOIN users u ON o.user_email = u.email
         WHERE 1=1";
 $params = [];
 $types = "";
@@ -534,6 +536,78 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                 font-size: 13px;
             }
         }
+
+        .page-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .customer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: #666;
+        }
+
+        .customer-details h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .customer-email {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+            color: #212529;
+        }
+
+        .back-button i {
+            font-size: 0.9em;
+        }
+
+        .page-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -597,22 +671,26 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
         
         <main class="main-content">
             <?php if ($user_filter): ?>
-                <a href="customer_orders_page.php" class="back-button">
+                <a href="manage_orders.php" class="back-button">
                     <i class="fas fa-arrow-left"></i> Back to All Customers
                 </a>
             <?php endif; ?>
 
-            <h1 class="page-title">
-                <?php 
-                if ($user_filter) {
-                    $user_name = $result->num_rows > 0 ? $result->fetch_array()['user_name'] : 'Unknown User';
-                    $result->data_seek(0); // Reset result pointer
-                    echo "Orders for " . htmlspecialchars($user_name);
-                } else {
-                    echo "Order Management";
-                }
-                ?>
-            </h1>
+            <?php
+            // Get customer name
+            $name_sql = "SELECT first_name FROM users WHERE email = ?";
+            $name_stmt = $conn->prepare($name_sql);
+            $name_stmt->bind_param("s", $user_filter);
+            $name_stmt->execute();
+            $name_result = $name_stmt->get_result();
+            $customer_name = "Unknown Customer";
+            if ($name_result->num_rows > 0) {
+                $name_row = $name_result->fetch_assoc();
+                $customer_name = $name_row['first_name'];
+            }
+            ?>
+
+            <h1 class="page-title">Orders for <?php echo htmlspecialchars($customer_name); ?></h1>
 
             <!-- Order Statistics -->
             <div class="stats-grid">
@@ -777,7 +855,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                     <div class="customer-info">
                                         <h4><i class="fas fa-user"></i> Customer Details</h4>
                                         <div class="customer-details">
-                                            <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
+                                            <p><strong>Name:</strong> <?php echo htmlspecialchars($row['first_name']); ?></p>
                                             <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
                                             <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
                                             <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
