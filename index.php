@@ -212,6 +212,52 @@ if(isset($_SESSION['email'])){
             border-color: #000;
         }
 
+        /* Custom Select Styles */
+        .form-group select.form-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select.form-input:hover {
+            border-color: #999;
+        }
+
+        .form-group select.form-input:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group select.form-input option {
+            padding: 12px;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+        }
+
+        .form-group select.form-input option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group label + .form-input {
+            margin-top: 4px;
+        }
+
         .form-footer {
             display: flex;
             justify-content: flex-end;
@@ -489,6 +535,31 @@ if(isset($_SESSION['email'])){
                 transform: translate(-50%, 0);
                 opacity: 1;
             }
+        }
+
+        /* Security Question Specific Styles */
+        #security_question {
+            background-color: #fff;
+            border: 1px solid #eaeaea;
+            border-radius: 4px;
+            color: #333;
+            font-size: 14px;
+            height: 45px;
+        }
+
+        #security_question option {
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        #security_question:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Security Answer Input Styles */
+        #security_answer {
+            margin-top: 4px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

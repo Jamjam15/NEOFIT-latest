@@ -422,11 +422,17 @@ $low_stock_result = $conn->query($sql_low_stock);
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
+
                     <span>Messages</span>
                 </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
+
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
+                </li>
+                <li onclick="window.location.href='manage_returns.php'">
+                    <i class="fas fa-undo"></i>
+                    <span>Returns</span>
                 </li>
                 <li onclick="window.location.href='customer_orders_page.php'">
                     <i class="fas fa-users"></i>

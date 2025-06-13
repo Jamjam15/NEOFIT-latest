@@ -290,4 +290,36 @@ function updatePaymentStatusFromDelivery($order_id, $delivery_status) {
     }
 }
 
+// Update payment status based on payment method
+function updatePaymentStatusByMethod($order_id, $payment_method) {
+    global $conn;
+    
+    try {
+        // If payment method is Cash on Delivery, set status to success
+        if (strtolower($payment_method) === 'cod' || strtolower($payment_method) === 'cash on delivery') {
+            $query = "UPDATE payments SET status = 'success' WHERE order_id = ?";
+            $stmt = mysqli_prepare($conn, $query);
+            if (!$stmt) {
+                error_log("Error preparing query: " . mysqli_error($conn));
+                return false;
+            }
+            
+            mysqli_stmt_bind_param($stmt, "s", $order_id);
+            $result = mysqli_stmt_execute($stmt);
+            
+            if (!$result) {
+                error_log("Error updating payment status: " . mysqli_error($conn));
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return false;
+    } catch (Exception $e) {
+        error_log("Error in updatePaymentStatusByMethod: " . $e->getMessage());
+        return false;
+    }
+}
+
 ?>

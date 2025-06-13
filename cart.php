@@ -2,6 +2,7 @@
 session_start();
 include 'db.php';
 
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -190,6 +191,8 @@ $total_amount = 0;
     </style>
 </head>
 <body>
+    <?php include 'header.php'; ?>
+     
     <div class="container">
         <h1 class="cart-title">Shopping Cart</h1>
 
@@ -259,7 +262,13 @@ $total_amount = 0;
 
                 fetch('update_cart.php', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cart_id: itemId,
+                        quantity: newQuantity  // 👈 this was missing
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -274,6 +283,7 @@ $total_amount = 0;
                     console.error('Error:', error);
                     alert('Error updating quantity');
                 });
+
             }
 
             // Decrease quantity
