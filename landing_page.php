@@ -234,7 +234,7 @@ $user_email = $_SESSION['email'];
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color:rgb(141, 139, 139);
+            background-color: #f5f5f5;
         }
 
         .slide.active {
@@ -245,6 +245,7 @@ $user_email = $_SESSION['email'];
             text-align: left;
             padding: 0 10%;
             max-width: 600px;
+            z-index: 2;
         }
 
         .slide-heading {
@@ -252,29 +253,15 @@ $user_email = $_SESSION['email'];
             text-transform: uppercase;
             line-height: 1.2;
             margin-bottom: 20px;
+            color: #000;
         }
         
-        .cta-button {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: black;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            background-color:rgb(255, 255, 255);
-        }
-
         .slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             position: absolute;
-            z-index: -1;
+            z-index: 1;
         }
 
         .slider-controls {
@@ -284,26 +271,32 @@ $user_email = $_SESSION['email'];
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2;
+            z-index: 3;
+            gap: 20px;
         }
 
         .prev-btn, .next-btn {
-            background: transparent;
-            color: white;
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            margin: 0 10px;
-            font-size: 24px;
+            font-size: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background 0.3s;
+            transition: all 0.3s;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .prev-btn:hover, .next-btn:hover {
+            background: #fff;
+            transform: translateY(-50%) scale(1.1);
         }
 
         .prev-btn {
@@ -316,20 +309,28 @@ $user_email = $_SESSION['email'];
 
         .dots {
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
         }
 
         .dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+        }
+
+        .dot:hover {
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .dot.active {
-            background: black;
+            background: #000;
+            transform: scale(1.2);
         }
         /* Product Section */
         .product-section {
@@ -1027,6 +1028,115 @@ $user_email = $_SESSION['email'];
                 }
             }
         });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+        let currentSlide = 0;
+        let slideInterval;
+        const SLIDE_DURATION = 3000; // 3 seconds in milliseconds
+
+        // Function to show a specific slide
+        function showSlide(index) {
+            // Remove active class from all slides and dots
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add active class to current slide and dot
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+            
+            currentSlide = index;
+        }
+
+        // Function to show next slide
+        function nextSlide() {
+            let next = currentSlide + 1;
+            if (next >= slides.length) {
+                next = 0;
+            }
+            showSlide(next);
+        }
+
+        // Function to show previous slide
+        function prevSlide() {
+            let prev = currentSlide - 1;
+            if (prev < 0) {
+                prev = slides.length - 1;
+            }
+            showSlide(prev);
+        }
+
+        // Start automatic sliding with precise timing
+        function startSlideInterval() {
+            // Clear any existing interval
+            if (slideInterval) {
+                clearInterval(slideInterval);
+            }
+            
+            // Set interval for slides
+            slideInterval = setInterval(() => {
+                nextSlide();
+            }, SLIDE_DURATION);
+        }
+
+        // Stop automatic sliding
+        function stopSlideInterval() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+            }
+        }
+
+        // Function to handle manual navigation
+        function handleManualNavigation() {
+            stopSlideInterval();
+            startSlideInterval();
+        }
+
+        // Event listeners for manual controls
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            handleManualNavigation();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            handleManualNavigation();
+        });
+
+        // Event listeners for dots
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                showSlide(index);
+                handleManualNavigation();
+            });
+        });
+
+        // Start automatic sliding
+        showSlide(0); // Show first slide
+        startSlideInterval();
+
+        // Pause sliding when hovering over the slider
+        const sliderContainer = document.querySelector('.slider-container');
+        sliderContainer.addEventListener('mouseenter', stopSlideInterval);
+        sliderContainer.addEventListener('mouseleave', startSlideInterval);
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                prevSlide();
+                handleManualNavigation();
+            } else if (e.key === 'ArrowRight') {
+                nextSlide();
+                handleManualNavigation();
+            }
+        });
+    });
     </script>
 </body>
 </html>
