@@ -28,29 +28,26 @@ $stmt->fetch();
 $stmt->close();
 
 // Check if we're checking out a specific cart item or the entire cart
-$cart_ids = isset($_GET['cart_ids']) ? explode(',', $_GET['cart_ids']) : [];
+$cart_id = $_GET['cart_id'] ?? null;
 
-if (!empty($cart_ids)) {
-    // Only selected items
-    $placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
-    $types = str_repeat('i', count($cart_ids) + 1); // for cart_ids and user_id
+if ($cart_id) {
+    // Single item checkout
     $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
             FROM cart c
             JOIN products p ON c.product_id = p.id
-            WHERE c.user_id = ? AND c.id IN ($placeholders)";
+            WHERE c.id = ? AND c.user_id = ?";
     $stmt = $conn->prepare($sql);
-    $params = array_merge([$user_id], $cart_ids);
-    $stmt->bind_param($types, ...$params);
+    $stmt->bind_param("ii", $cart_id, $user_id);
 } else {
-    // Full cart checkout fallback
+    // Full cart checkout
     $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
             FROM cart c
             JOIN products p ON c.product_id = p.id
-            WHERE c.user_id = ?";
+            WHERE c.user_id = ?
+            ORDER BY c.added_at DESC";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $user_id);
 }
-
 
 $stmt->execute();
 $result = $stmt->get_result();
