@@ -916,29 +916,7 @@ if (isset($_GET['saved'])) {
         <div class="header-container">
             <a class="logo" href="landing_page.php">NEOFIT</a>
             
-                <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
-                <div class="cart-icon">
-                    <a href="cart.php">
-                        <img src="cart.jpg" alt="Cart Icon" width="24" height="24">
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
-                <div class="messages-icon">
-                    <a href="user_messages.php" title="Messages">
-                        <i class="fas fa-comment-dots" style="font-size: 24px; color: #000;"></i>
-                    </a>
-                </div>
-                <div class="shopping-bag-icon">
-                    <a href="orders.php">
-                        <img src="shopping-bag.png" alt="Shopping Bag Icon" width="24" height="24">
-                    </a>
-                </div>
-                <div class="favorites-icon">
-                    <a href="favorites.php">
-                        <img src="favorites.png" alt="Favorites Icon" width="24" height="24">
-                    </a>
-                </div>
-            </div>
+              
         </div>
     </header>
     <main class="main-content">
