@@ -16,6 +16,7 @@ $city = '';
 $province = '';
 $region = '';
 $contact = '';
+$profile_picture = '';
 
 if (isset($_SESSION['user_name'])) {
     $user_name = $_SESSION['user_name'];
@@ -38,11 +39,11 @@ if ($user_id) {
         $region = $address_data['region'];
     }
 
-    // Get contact number
-    $stmt = $conn->prepare("SELECT contact FROM users WHERE id = ?");
+    // Get contact number and profile picture
+    $stmt = $conn->prepare("SELECT contact, profile_picture FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
-    $stmt->bind_result($contact);
+    $stmt->bind_result($contact, $profile_picture);
     $stmt->fetch();
     $stmt->close();
 

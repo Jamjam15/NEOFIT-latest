@@ -9,6 +9,13 @@ session_start();
     <title>Privacy Policy - NeoFit</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Alexandria', sans-serif;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: #f9f9f9;
@@ -16,6 +23,35 @@ session_start();
             margin: 0;
             padding: 0;
         }
+
+        /* Header Styles */
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
         .container {
             max-width: 800px;
             margin: 40px auto;
@@ -24,6 +60,12 @@ session_start();
             box-shadow: 0 2px 12px rgba(0,0,0,0.07);
             padding: 40px 30px;
         }
+
+        /* Adjust container margin when header is present */
+        body:has(header) .container {
+            margin-top: 100px;
+        }
+
         h1 {
             font-size: 2rem;
             margin-bottom: 20px;
@@ -49,6 +91,14 @@ session_start();
     </style>
 </head>
 <body>
+    <?php if (isset($_SESSION['email'])): ?>
+    <header>
+        <div class="header-container">
+            <a href="landing_page.php" class="logo">NEOFIT</a>
+        </div>
+    </header>
+    <?php endif; ?>
+
     <div class="container">
         <h1>Privacy Policy</h1>
         <h2>1. Information We Collect</h2>
@@ -110,9 +160,10 @@ session_start();
         <div class="contact-info">
             <h3>Contact Us</h3>
             <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-            <p>Email: privacy@neofit.com</p>
-            <p>Phone: +63 2 8123 4567</p>
-            <p>Address: 123 Fashion Street, Makati City, Metro Manila, Philippines</p>
+            <p><strong>Address:</strong> Cavite State University Imus Campus<br>Palico IV, Imus, Cavite<br>Philippines 4103</p>
+            <p><strong>Phone:</strong> (046) 471-6607</p>
+            <p><strong>Email:</strong> imus@cvsu.edu.ph</p>
+            <p><strong>Business Hours:</strong><br>Monday - Friday: 8:00 AM - 5:00 PM<br>Saturday & Sunday: Closed</p>
         </div>
         <p class="last-updated">Last Updated: March 15, 2024</p>
     </div>

@@ -61,7 +61,7 @@ session_start();
         <p>NeoFit shall not be liable for any damages arising from your use of, or inability to use, this website or any content provided herein.</p>
         <h2>Changes to This Statement</h2>
         <p>We reserve the right to update or modify this Legal Statement at any time. Changes will be posted on this page with an updated effective date.</p>
-        <p>For more information, please contact us at <a href="contact.php">Contact Us</a>.</p>
+        <p>For more information, please contact us.
     </div>
    
 </body>

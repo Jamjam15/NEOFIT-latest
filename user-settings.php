@@ -86,13 +86,48 @@ if (isset($_GET['saved'])) {
             margin-bottom: 40px;
         }
 
-        .user-avatar {
+        .profile-picture-container {
+            position: relative;
             width: 100px;
             height: 100px;
-            border-radius: 50%;
             margin: 0 auto 20px;
-            display: block;
+        }
+
+        .profile-picture-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            cursor: pointer;
+        }
+
+        .profile-picture-container:hover .profile-picture-overlay {
+            opacity: 1;
+        }
+
+        .upload-button {
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .upload-button:hover {
+            color: #ddd;
+        }
+
+        #profilePicture {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+            border-radius: 50%;
             border: 3px solid #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -827,7 +862,22 @@ if (isset($_GET['saved'])) {
 
     <main class="main-content">
         <div class="settings-header">
-            <img src="profile.jpg" alt="Profile Picture" class="user-avatar">
+            <div class="profile-picture-container">
+                <img src="<?php echo isset($profile_picture) ? htmlspecialchars($profile_picture) : 'profile.jpg'; ?>" 
+                     alt="Profile Picture" 
+                     class="user-avatar" 
+                     id="profilePicture">
+                <div class="profile-picture-overlay">
+                    <label for="profilePictureInput" class="upload-button">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" 
+                           id="profilePictureInput" 
+                           name="profile_picture" 
+                           accept="image/jpeg,image/png,image/gif" 
+                           style="display: none;">
+                </div>
+            </div>
             <h1 class="welcome-text">Welcome, <?php echo htmlspecialchars($user_name); ?></h1>
             <p class="user-email"><?php echo htmlspecialchars($user_email); ?></p>
         </div>
@@ -1515,6 +1565,54 @@ if (isset($_GET['saved'])) {
                         this.value = this.value.slice(0, 11);
                     }
                 });
+            });
+
+            document.getElementById('profilePictureInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file type
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Please upload a JPG, PNG, or GIF image.');
+                        return;
+                    }
+
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File is too large. Maximum size is 5MB.');
+                        return;
+                    }
+
+                    // Create FormData
+                    const formData = new FormData();
+                    formData.append('profile_picture', file);
+
+                    // Upload file
+                    fetch('upload_profile_picture.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update profile picture
+                            document.getElementById('profilePicture').src = data.picture_path + '?t=' + new Date().getTime();
+                            // Show success message
+                            const successMessage = document.getElementById('successMessage');
+                            successMessage.textContent = data.message;
+                            successMessage.style.display = 'block';
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while uploading the file.');
+                    });
+                }
             });
         });
 

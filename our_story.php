@@ -116,7 +116,7 @@ session_start();
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
+
 
     <div class="content-container">
         <h1 class="page-title">Our Story</h1>
@@ -132,9 +132,7 @@ session_start();
             <h2>The Beginning</h2>
             <p>NEOFIT was born from a passion for streetwear and a vision to create something unique in the fashion industry. Founded in 2020, our brand emerged from the vibrant streets of Manila, where urban culture meets contemporary fashion.</p>
             
-            <div class="image-container">
-                <img src="store-front.jpg" alt="NEOFIT Store Front">
-            </div>
+           
         </div>
 
         <div class="story-section">

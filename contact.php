@@ -39,11 +39,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: #000;
         }
 
+        /* Header Styles */
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
         .content-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
             flex: 1;
+        }
+
+        /* Adjust container margin when header is present */
+        body:has(header) .content-container {
+            margin-top: 100px;
         }
 
         .page-title {
@@ -184,7 +217,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
+    <?php if (isset($_SESSION['email'])): ?>
+    <header>
+        <div class="header-container">
+            <a href="landing_page.php" class="logo">NEOFIT</a>
+        </div>
+    </header>
+    <?php endif; ?>
 
     <div class="content-container">
         <h1 class="page-title">Contact Us</h1>
