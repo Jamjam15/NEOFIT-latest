@@ -27,40 +27,33 @@ $stmt->bind_result($contact);
 $stmt->fetch();
 $stmt->close();
 
-// Get selected items from POST data
-$selected_items = [];
-if (isset($_POST['selected_items']) && !empty($_POST['selected_items'])) {
-    $selected_items = json_decode($_POST['selected_items'], true);
-    error_log('Selected items received: ' . print_r($selected_items, true)); // Debug log
-}
+// Check if we're checking out a specific cart item or the entire cart
+$cart_id = $_GET['cart_id'] ?? null;
 
-// Check if we're checking out selected items or a specific cart item
-if (!empty($selected_items)) {
-    // Selected items checkout
-    $placeholders = str_repeat('?,', count($selected_items) - 1) . '?';
-    $sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
-            FROM cart c
-            JOIN products p ON c.product_id = p.id
-            WHERE c.id IN ($placeholders) AND c.user_id = ?
-            ORDER BY c.added_at DESC";
-    
-    $params = array_merge($selected_items, [$user_id]);
-    $types = str_repeat('i', count($params));
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    error_log('SQL for selected items: ' . $sql); // Debug log
-    error_log('Parameters: ' . print_r($params, true)); // Debug log
-} else {
-    // If no items selected, redirect back to cart
+// Get selected items from POST data
+$selected_items = isset($_POST['selected_items']) ? json_decode($_POST['selected_items'], true) : [];
+
+if (empty($selected_items)) {
     header('Location: cart.php');
     exit;
 }
 
+// Get selected cart items with their details
+$placeholders = str_repeat('?,', count($selected_items) - 1) . '?';
+$sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
+        WHERE c.id IN ($placeholders) AND c.user_id = ?";
+
+$stmt = $conn->prepare($sql);
+$params = array_merge($selected_items, [$user_id]);
+$types = str_repeat('i', count($selected_items)) . 'i';
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
 $total_amount = 0;
+$total_items = 0;
 ?>
 
 <!DOCTYPE html>
@@ -364,6 +357,7 @@ $total_amount = 0;
                     while ($item = $result->fetch_assoc()):
                         $subtotal = $item['quantity'] * $item['product_price'];
                         $total_amount += $subtotal;
+                        $total_items += $item['quantity'];
                     ?>
                         <div class="order-item">
                             <img src="Admin Pages/<?php echo $item['photoFront']; ?>" alt="<?php echo $item['product_name']; ?>" class="item-image">
@@ -372,6 +366,7 @@ $total_amount = 0;
                                 <div class="item-size">Size: <?php echo strtoupper($item['size']); ?></div>
                                 <div class="item-quantity">Quantity: <?php echo $item['quantity']; ?></div>
                                 <div class="item-price">₱<?php echo number_format($item['product_price'], 2); ?></div>
+                                <div class="item-subtotal">Subtotal: ₱<?php echo number_format($subtotal, 2); ?></div>
                             </div>
                         </div>
                     <?php endwhile; ?>
@@ -398,30 +393,28 @@ $total_amount = 0;
         <div class="order-summary checkout-section">
             <h2 class="section-title">Order Summary</h2>
             <div class="summary-row">
-                <span>Subtotal</span>
+                <span>Items (<?php echo $total_items; ?>)</span>
                 <span>₱<?php echo number_format($total_amount, 2); ?></span>
             </div>
             <div class="summary-row">
                 <span>Shipping Fee</span>
                 <span>Free</span>
             </div>
+            <?php if (isset($_POST['payment_method']) && $_POST['payment_method'] === 'NeoCreds'): ?>
+            <div class="summary-row">
+                <span>NeoCreds Applied</span>
+                <span class="deduction-amount">-₱<?php echo number_format(min($total_amount, $neocreds_balance), 2); ?></span>
+            </div>
+            <?php endif; ?>
             <div class="summary-row summary-total">
                 <span>Total</span>
-                <span>₱<?php echo number_format($total_amount, 2); ?></span>
-            </div>
-            <div id="neocreds-summary" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                <div class="summary-row">
-                    <span>Current NeoCreds Balance</span>
-                    <span id="current-balance">₱0.00</span>
-                </div>
-                <div class="summary-row" style="color: #dc3545;">
-                    <span>Amount to be Deducted</span>
-                    <span id="deduction-amount">-₱<?php echo number_format($total_amount, 2); ?></span>
-                </div>
-                <div class="summary-row" style="font-weight: bold;">
-                    <span>Remaining Balance</span>
-                    <span id="remaining-balance">₱0.00</span>
-                </div>
+                <span>₱<?php 
+                    $final_total = $total_amount;
+                    if (isset($_POST['payment_method']) && $_POST['payment_method'] === 'NeoCreds') {
+                        $final_total = max(0, $total_amount - min($total_amount, $neocreds_balance));
+                    }
+                    echo number_format($final_total, 2); 
+                ?></span>
             </div>
             <button id="place-order-btn" class="place-order-btn" <?php echo (!$address || !$contact) ? 'disabled' : ''; ?>>
                 Place Order

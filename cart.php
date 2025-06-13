@@ -725,7 +725,6 @@ $total_amount = 0;
             <h1 class="cart-title">
                 <i class="fas fa-shopping-cart"></i>
                 Shopping Cart
-                <span class="cart-count"><?php echo $result->num_rows; ?> items</span>
             </h1>
         </div>
 
@@ -852,7 +851,7 @@ $total_amount = 0;
                         </div>
                         <form id="checkout-form" action="checkout.php" method="POST">
                             <input type="hidden" name="selected_items" id="selected-items-input" value="">
-                            <button type="submit" class="checkout-btn">
+                            <button type="submit" class="checkout-btn" id="checkout-btn" disabled>
                                 <i class="fas fa-shopping-cart"></i>
                                 Proceed to Checkout
                             </button>
@@ -1046,8 +1045,10 @@ $total_amount = 0;
 
             // Update selected count and delete button
             function updateSelectedCount() {
-                const checkedItems = document.querySelectorAll('.cart-item .item-checkbox:checked').length;
-                deleteSelectedBtn.style.display = checkedItems > 0 ? 'flex' : 'none';
+                const checkedItems = document.querySelectorAll('.cart-item .item-checkbox:checked');
+                const checkoutBtn = document.getElementById('checkout-btn');
+                deleteSelectedBtn.style.display = checkedItems.length > 0 ? 'flex' : 'none';
+                checkoutBtn.disabled = checkedItems.length === 0;
                 updateSummary(); // This will update the count with total quantity
                 updateSelectedItemsInput();
             }
@@ -1167,40 +1168,24 @@ $total_amount = 0;
                 
                 if (selectedItems.length > 0) {
                     if (confirm('Are you sure you want to delete the selected items?')) {
+                        // Create FormData object
+                        const formData = new FormData();
+                        formData.append('items', JSON.stringify(selectedItems));
+
                         fetch('remove_from_cart.php', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ items: selectedItems })
+                            body: formData
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                selectedItems.forEach(id => {
-                                    const item = document.querySelector(`[data-cart-id="${id}"]`);
-                                    if (item) {
-                                        item.remove();
-                                    }
-                                });
-                                
-                                totalItems = document.querySelectorAll('.cart-item .item-checkbox').length;
-                                updateSelectAllState();
-                                updateSelectedCount();
-                                updateSummary();
-                                
-                                const cartCount = document.querySelector('.cart-count');
-                                if (cartCount) {
-                                    cartCount.textContent = totalItems;
-                                }
-                                
+                                // Show success message
                                 alert('Selected items have been removed from your cart.');
                                 
-                                if (totalItems === 0) {
-                                    location.reload();
-                                }
+                                // Reload the page to show updated cart
+                                window.location.reload();
                             } else {
-                                alert('Error removing items. Please try again.');
+                                alert(data.message || 'Error removing items. Please try again.');
                             }
                         })
                         .catch(error => {
@@ -1208,6 +1193,8 @@ $total_amount = 0;
                             alert('Error removing items. Please try again.');
                         });
                     }
+                } else {
+                    alert('Please select items to delete.');
                 }
             });
 
@@ -1220,6 +1207,44 @@ $total_amount = 0;
                     return;
                 }
                 updateSelectedItemsInput();
+            });
+
+            // Handle remove button
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const cartItem = this.closest('.cart-item');
+                    const cartId = cartItem.getAttribute('data-id');
+                    
+                    if (confirm('Are you sure you want to remove this item from your cart?')) {
+                        const formData = new FormData();
+                        formData.append('items', JSON.stringify([cartId]));
+
+                        fetch('remove_from_cart.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                cartItem.remove();
+                                updateSummary();
+                                updateSelectAllState();
+                                updateSelectedCount();
+                                
+                                // If no items left, reload page to show empty cart
+                                if (document.querySelectorAll('.cart-item').length === 0) {
+                                    window.location.reload();
+                                }
+                            } else {
+                                alert(data.message || 'Error removing item. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error removing item. Please try again.');
+                        });
+                    }
+                });
             });
 
             // Initialize counts and summary
