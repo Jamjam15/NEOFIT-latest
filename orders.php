@@ -691,6 +691,8 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
+<?php include 'header.php'; ?>
+
     <div class="container">
         <div class="header">
             <h1 class="page-title">My Orders</h1>

@@ -912,13 +912,8 @@ if (isset($_GET['saved'])) {
     </style>
 </head>
 <body>
-<header>
-        <div class="header-container">
-            <a class="logo" href="landing_page.php">NEOFIT</a>
-            
-              
-        </div>
-    </header>
+<?php include 'header.php'; ?>
+
     <main class="main-content">
         <div class="settings-header">
             <div class="profile-picture-container">
@@ -1915,5 +1910,7 @@ if (isset($_GET['saved'])) {
             updateProvinceDropdown(currentRegion);
         }
     </script>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>

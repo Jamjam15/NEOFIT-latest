@@ -277,7 +277,7 @@ $result = $conn->query($sql);
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='manage_returns.php'">
                     <i class="fas fa-undo"></i>
                     <span>Returns</span>
                 </li>
