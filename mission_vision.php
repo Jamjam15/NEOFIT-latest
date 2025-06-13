@@ -63,6 +63,7 @@ session_start();
             font-size: 36px;
             margin-bottom: 30px;
             text-align: center;
+            padding-top: 100px;
         }
 
         .mission-vision-section {
