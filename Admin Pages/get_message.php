@@ -32,6 +32,9 @@ if ($message['status'] === 'unread') {
     $update_stmt->bind_param("i", $message_id);
     $update_stmt->execute();
     $update_stmt->close();
+    
+    // Update the message status in the response
+    $message['status'] = 'read';
 }
 
 header('Content-Type: application/json');

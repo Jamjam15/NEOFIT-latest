@@ -120,6 +120,62 @@ $user_email = $_SESSION['email'];
             font-weight: bold;
         }
 
+        .messages-icon {
+            position: relative;
+            font-size: 20px;
+        }
+
+        .messages-icon a {
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .messages-icon a:hover {
+            color: #55a39b;
+        }
+
+        .messages-icon i {
+            font-size: 22px;
+        }
+
+        .message-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .messages-icon:hover .message-count {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .messages-icon i {
+                font-size: 20px;
+            }
+            
+            .message-count {
+                min-width: 18px;
+                height: 18px;
+                font-size: 11px;
+            }
+        }
+
         /* Main Content */
         main {
             flex: 1;
@@ -171,7 +227,7 @@ $user_email = $_SESSION['email'];
         .cta-button {
             padding: 12px 40px;
             border: 2px transparent;
-            background: transparent;
+            background: #000000;
             color: #fff;
             font-size: 16px;
             cursor: pointer;
@@ -677,6 +733,12 @@ $user_email = $_SESSION['email'];
                         <img src="favorites.png" alt="Favorites Icon" width="24" height="24">
                     </a>
                 </div>
+                <div class="messages-icon">
+                    <a href="messages.php">
+                        <i class="fas fa-envelope"></i>
+                        <span class="message-count">0</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -979,6 +1041,23 @@ $user_email = $_SESSION['email'];
                 .catch(error => console.error('Error:', error));
         }        // Update cart count on page load
         updateCartCount();
+
+        // Update message count
+        function updateMessageCount() {
+            fetch('get_message_count.php')
+                .then(response => response.json())
+                .then(data => {
+                    const messageCount = document.querySelector('.message-count');
+                    if (messageCount) {
+                        messageCount.textContent = data.count;
+                        messageCount.style.display = data.count > 0 ? 'flex' : 'none';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update message count on page load
+        updateMessageCount();
 
         // Real-time search functionality
         const searchInput = document.getElementById('search-input');

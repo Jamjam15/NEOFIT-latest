@@ -35,6 +35,12 @@ if (session_status() === PHP_SESSION_NONE) {
                     <img src="favorites.png" alt="Favorites Icon" width="24" height="24">
                 </a>
             </div>
+            <div class="messages-icon">
+                <a href="messages.php">
+                    <i class="fas fa-envelope"></i>
+                    <span class="message-count">0</span>
+                </a>
+            </div>
         </div>
     </div>
 </header>
@@ -111,7 +117,7 @@ if (session_status() === PHP_SESSION_NONE) {
         background-color: #fff;
     }
 
-    .user-icon, .cart-icon, .shopping-bag-icon, .favorites-icon {
+    .user-icon, .cart-icon, .shopping-bag-icon, .favorites-icon, .messages-icon {
         font-size: 18px;
         cursor: pointer;
         position: relative;
@@ -133,6 +139,50 @@ if (session_status() === PHP_SESSION_NONE) {
         font-weight: bold;
     }
 
+    .messages-icon {
+        position: relative;
+        font-size: 20px;
+    }
+
+    .messages-icon a {
+        color: #333;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: color 0.3s;
+    }
+
+    .messages-icon a:hover {
+        color: #55a39b;
+    }
+
+    .messages-icon i {
+        font-size: 22px;
+    }
+
+    .message-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: #ff4444;
+        color: white;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 0 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+    .messages-icon:hover .message-count {
+        transform: scale(1.1);
+    }
+
     @media (max-width: 768px) {
         .search-input {
             width: 150px;
@@ -140,6 +190,15 @@ if (session_status() === PHP_SESSION_NONE) {
         
         .header-right {
             gap: 15px;
+        }
+        .messages-icon i {
+            font-size: 20px;
+        }
+        
+        .message-count {
+            min-width: 18px;
+            height: 18px;
+            font-size: 11px;
         }
     }
 </style>
@@ -213,4 +272,24 @@ document.addEventListener('DOMContentLoaded', updateCartCount);
 
 // Update cart count every 5 seconds
 setInterval(updateCartCount, 5000);
+
+// Update message count every 30 seconds
+function updateMessageCount() {
+    fetch('update_message_count.php')
+        .then(response => response.json())
+        .then(data => {
+            const messageCount = document.querySelector('.message-count');
+            if (messageCount) {
+                messageCount.textContent = data.unread_count;
+                messageCount.style.display = data.unread_count > 0 ? 'flex' : 'none';
+            }
+        })
+        .catch(error => console.error('Error updating message count:', error));
+}
+
+// Update immediately and then every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    updateMessageCount();
+    setInterval(updateMessageCount, 30000);
+});
 </script>
