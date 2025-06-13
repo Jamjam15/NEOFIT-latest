@@ -198,4 +198,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function updateCartCount() {
+    fetch('get_cart_count.php')
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector('.cart-count').textContent = data.count;
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Update cart count on page load
+document.addEventListener('DOMContentLoaded', updateCartCount);
+
+// Update cart count every 5 seconds
+setInterval(updateCartCount, 5000);
 </script>
