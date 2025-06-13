@@ -269,19 +269,27 @@ try {
         }
     }
 
-    // ✅ Clear cart
+    // Remove only the selected items from cart
     if ($cart_id) {
-        $delete_sql = "DELETE FROM cart WHERE id = ? AND user_id = ?";
-        $delete_stmt = $conn->prepare($delete_sql);
-        $delete_stmt->bind_param("ii", $cart_id, $user_id);
+        // Single item checkout
+        $remove_sql = "DELETE FROM cart WHERE id = ? AND user_id = ?";
+        $remove_stmt = $conn->prepare($remove_sql);
+        $remove_stmt->bind_param("ii", $cart_id, $user_id);
     } else {
-        $delete_sql = "DELETE FROM cart WHERE user_id = ?";
-        $delete_stmt = $conn->prepare($delete_sql);
-        $delete_stmt->bind_param("i", $user_id);
+        // Multiple items checkout
+        $selected_items = isset($_POST['selected_items']) ? json_decode($_POST['selected_items'], true) : [];
+        if (!empty($selected_items)) {
+            $placeholders = str_repeat('?,', count($selected_items) - 1) . '?';
+            $remove_sql = "DELETE FROM cart WHERE id IN ($placeholders) AND user_id = ?";
+            $remove_stmt = $conn->prepare($remove_sql);
+            $params = array_merge($selected_items, [$user_id]);
+            $types = str_repeat('i', count($selected_items)) . 'i';
+            $remove_stmt->bind_param($types, ...$params);
+        }
     }
 
-    if (!$delete_stmt->execute()) {
-        throw new Exception("Error clearing cart");
+    if (isset($remove_stmt) && !$remove_stmt->execute()) {
+        throw new Exception("Error removing items from cart: " . $remove_stmt->error);
     }
 
     $conn->commit();

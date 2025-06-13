@@ -32,8 +32,8 @@ if ($cart_id <= 0) {
     exit;
 }
 
-if ($quantity < 1 || $quantity > 10) {
-    echo json_encode(['success' => false, 'message' => 'Quantity must be between 1 and 10']);
+if ($quantity < 1) {
+    echo json_encode(['success' => false, 'message' => 'Quantity must be at least 1']);
     exit;
 }
 

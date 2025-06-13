@@ -170,7 +170,7 @@ $user_email = $_SESSION['email'];
 
         .cta-button {
             padding: 12px 40px;
-            border: 2px transparent;
+            border: 2px solid #fff;
             background: transparent;
             color: #fff;
             font-size: 16px;
@@ -181,7 +181,7 @@ $user_email = $_SESSION['email'];
         }
 
         .cta-button:hover {
-            background:rgb(255, 255, 255);
+            background: #fff;
             color: #000;
         }
 
@@ -193,9 +193,9 @@ $user_email = $_SESSION['email'];
 
         .cta-button1 {
             padding: 12px 40px;
-            border: 2px solid #ffffff;
+            border: 2px solid #333333;
             background: transparent;
-            color: #ffffff;
+            color: #333333;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s;
@@ -204,41 +204,32 @@ $user_email = $_SESSION['email'];
         }
 
         .cta-button1:hover {
-            background: #ffffff;
-            color: #1e1e1e;
-            border: white;
+            background: #333333;
+            color: #ffffff;
+            border: #333333;
         }
 
           /* Slider Styles */
           .slider-container {
-            width: 100%;
-            height: 500px;
             position: relative;
+            width: 100%;
             overflow: hidden;
         }
 
         .slider {
-            position: relative;
-            width: 100%;
-            height: 100%;
+            display: flex;
+            transition: transform 0.5s ease-in-out;
         }
 
         .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f5f5f5;
+            min-width: 100%;
+            position: relative;
         }
 
-        .slide.active {
-            opacity: 1;
+        .slide img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
         .slide-content {
@@ -256,14 +247,6 @@ $user_email = $_SESSION['email'];
             color: #000;
         }
         
-        .slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            z-index: 1;
-        }
-
         .slider-controls {
             position: absolute;
             bottom: 20px;
@@ -850,21 +833,21 @@ $user_email = $_SESSION['email'];
     <section class="slider-container">
         <div class="slider">
             <div class="slide">
-                <img src="/api/placeholder/1200/500" alt="Trending Streetwear">
+                <img src="Models Images/LP-Slide-1.png" alt="Trending Streetwear">
                 <div class="slide-content">
                     <h2 class="slide-heading"></h2>
                     
                 </div>
             </div>
             <div class="slide">
-                <img src="/api/placeholder/1200/500" alt="New Arrivals">
+                <img src="Models Images/LP-Slide-2.png" alt="New Arrivals">
                 <div class="slide-content">
                     <h2 class="slide-heading"></h2>
                    
                 </div>
             </div>
             <div class="slide">
-                <img src="/api/placeholder/1200/500" alt="Seasonal Essentials">
+                <img src="Models Images/LP-Slide-3.png" alt="Seasonal Essentials">
                 <div class="slide-content">
                     <h2 class="slide-heading"></h2>
                     
@@ -881,13 +864,16 @@ $user_email = $_SESSION['email'];
             <button class="next-btn">&#10095;</button>
         </div>
     </section>
-        <section class="empower-section">
-            <div class="empower-content">
-                <div class="text-content">
-                    <h2 class="empower-heading">Empower</h2>
-                    <h3 class="empower-subheading">SELF-EXPRESSION<br>WITH NEOFIT</h3>
-                    <a href="#" class="cta-button1">Learn More</a>
-                </div>
+        </div>
+    </section>
+
+        <!-- Under Slider Section with Empower Text -->
+        <section class="under-slider-section" style="width: 100%; margin: 0; padding: 0; position: relative;">
+            <img src="Models Images/UnderSlider.png" alt="Under Slider" style="width: 100%; height: auto; display: block;">
+            <div style="position: absolute; top: 50%; right: 10%; transform: translateY(-50%); text-align: left;">
+                <h2 style="font-size: 3rem; text-transform: uppercase; margin-bottom: 0; color: #333333;">Empower</h2>
+                <h3 style="font-size: 3rem; line-height: 1.2; margin-bottom: 20px; color: #333333;">SELF-EXPRESSION<br>WITH NEOFIT</h3>
+                <a href="mission_vision.php" class="cta-button1" style="display: inline-block;">Learn More</a>
             </div>
         </section>
 
@@ -1032,110 +1018,66 @@ $user_email = $_SESSION['email'];
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.querySelector('.slider');
         const slides = document.querySelectorAll('.slide');
         const dots = document.querySelectorAll('.dot');
         const prevBtn = document.querySelector('.prev-btn');
         const nextBtn = document.querySelector('.next-btn');
         let currentSlide = 0;
-        let slideInterval;
-        const SLIDE_DURATION = 3000; // 3 seconds in milliseconds
 
-        // Function to show a specific slide
-        function showSlide(index) {
-            // Remove active class from all slides and dots
-            slides.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
-            
-            // Add active class to current slide and dot
-            slides[index].classList.add('active');
-            dots[index].classList.add('active');
-            
-            currentSlide = index;
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
         }
 
-        // Function to show next slide
         function nextSlide() {
-            let next = currentSlide + 1;
-            if (next >= slides.length) {
-                next = 0;
-            }
-            showSlide(next);
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlider();
         }
 
-        // Function to show previous slide
         function prevSlide() {
-            let prev = currentSlide - 1;
-            if (prev < 0) {
-                prev = slides.length - 1;
-            }
-            showSlide(prev);
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlider();
         }
 
-        // Start automatic sliding with precise timing
-        function startSlideInterval() {
-            // Clear any existing interval
-            if (slideInterval) {
-                clearInterval(slideInterval);
-            }
-            
-            // Set interval for slides
-            slideInterval = setInterval(() => {
-                nextSlide();
-            }, SLIDE_DURATION);
-        }
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
 
-        // Stop automatic sliding
-        function stopSlideInterval() {
-            if (slideInterval) {
-                clearInterval(slideInterval);
-                slideInterval = null;
-            }
-        }
-
-        // Function to handle manual navigation
-        function handleManualNavigation() {
-            stopSlideInterval();
-            startSlideInterval();
-        }
-
-        // Event listeners for manual controls
-        prevBtn.addEventListener('click', () => {
-            prevSlide();
-            handleManualNavigation();
-        });
-
-        nextBtn.addEventListener('click', () => {
-            nextSlide();
-            handleManualNavigation();
-        });
-
-        // Event listeners for dots
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
-                showSlide(index);
-                handleManualNavigation();
+                currentSlide = index;
+                updateSlider();
             });
         });
 
-        // Start automatic sliding
-        showSlide(0); // Show first slide
-        startSlideInterval();
+        setInterval(nextSlide, 5000);
+    });
+    </script>
 
-        // Pause sliding when hovering over the slider
-        const sliderContainer = document.querySelector('.slider-container');
-        sliderContainer.addEventListener('mouseenter', stopSlideInterval);
-        sliderContainer.addEventListener('mouseleave', startSlideInterval);
+    <script>
+    increaseBtn.addEventListener('click', function() {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue < 10) {  // Maximum limit of 10
+            quantityInput.value = currentValue + 1;
+            updateCartQuantity(cartId, quantityInput.value);
+            updateSummary();
+        }
+    });
+    </script>
 
-        // Add keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                prevSlide();
-                handleManualNavigation();
-            } else if (e.key === 'ArrowRight') {
-                nextSlide();
-                handleManualNavigation();
-            }
-        });
+    <script>
+    quantityInput.addEventListener('change', function() {
+        let newValue = parseInt(this.value);
+        if (isNaN(newValue) || newValue < 1) {
+            newValue = 1;
+        } else if (newValue > 10) {  // Maximum limit of 10
+            newValue = 10;
+        }
+        this.value = newValue;
+        updateCartQuantity(cartId, newValue);
+        updateSummary();
     });
     </script>
 </body>
