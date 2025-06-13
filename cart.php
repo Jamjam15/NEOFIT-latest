@@ -262,7 +262,13 @@ $total_amount = 0;
 
                 fetch('update_cart.php', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cart_id: itemId,
+                        quantity: newQuantity  // 👈 this was missing
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -277,6 +283,7 @@ $total_amount = 0;
                     console.error('Error:', error);
                     alert('Error updating quantity');
                 });
+
             }
 
             // Decrease quantity
