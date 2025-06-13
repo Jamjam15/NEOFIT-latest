@@ -12,9 +12,14 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Get cart items
-$sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront 
-        FROM cart c 
-        JOIN products p ON c.product_id = p.id 
+$sql = "SELECT c.*, p.product_name, p.product_price, p.photoFront,
+        CASE c.size 
+            WHEN 'small' THEN p.quantity_small
+            WHEN 'medium' THEN p.quantity_medium
+            WHEN 'large' THEN p.quantity_large
+        END as stock
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
         WHERE c.user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
@@ -74,12 +79,7 @@ $total_amount = 0;
         }
 
         .cart-count {
-            background: #55a39b;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
+            display: none;
         }
 
         .cart-content {
@@ -541,7 +541,6 @@ $total_amount = 0;
             <h1 class="cart-title">
                 <i class="fas fa-shopping-cart"></i>
                 Shopping Cart
-                <span class="cart-count"><?php echo $result->num_rows; ?> items</span>
             </h1>
         </div>
 
@@ -549,11 +548,9 @@ $total_amount = 0;
             <div class="cart-items">
                 <?php if ($result->num_rows > 0): ?>
                     <?php while ($item = $result->fetch_assoc()): ?>
-                        <div class="cart-item" data-id="<?php echo $item['id']; ?>">
+                        <div class="cart-item" data-cart-id="<?php echo $item['id']; ?>">
                             <input type="checkbox" class="item-checkbox" value="<?php echo $item['id']; ?>">
-                            
                             <img src="Admin Pages/<?php echo $item['photoFront']; ?>" alt="<?php echo $item['product_name']; ?>" class="item-image">
-                            
                             <div class="item-details">
                                 <a href="product_detail.php?id=<?php echo $item['product_id']; ?>" class="item-name">
                                     <?php echo $item['product_name']; ?>
@@ -561,14 +558,12 @@ $total_amount = 0;
                                 <span class="item-size">Size: <?php echo strtoupper($item['size']); ?></span>
                                 <span class="item-price">₱<?php echo number_format($item['product_price'], 2); ?></span>
                             </div>
-
                             <div class="quantity-controls">
                                 <button class="quantity-btn decrease">-</button>
-                                <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1">
+                                <input type="number" class="quantity-input" value="<?php echo $item['quantity']; ?>" min="1" data-max-stock="<?php echo $item['stock']; ?>">
                                 <button class="quantity-btn increase">+</button>
                             </div>
-
-                            <button class="remove-btn" title="Remove item">×</button>
+                            <button class="remove-btn" onclick="removeItem(<?php echo $item['id']; ?>)" title="Remove item">×</button>
                         </div>
                     <?php endwhile; ?>
 
@@ -734,37 +729,40 @@ $total_amount = 0;
                 // Handle increase button
                 increaseBtn.addEventListener('click', function() {
                     const currentValue = parseInt(quantityInput.value);
-                    if (currentValue < 10) {
+                    const maxStock = parseInt(quantityInput.getAttribute('data-max-stock'));
+                    if (currentValue < maxStock) {
                         quantityInput.value = currentValue + 1;
                         updateCartQuantity(cartId, quantityInput.value);
-                        updateSummary(); // Update summary immediately
+                        updateSummary();
                     }
                 });
 
                 // Handle direct input
                 quantityInput.addEventListener('input', function() {
                     let newValue = parseInt(this.value);
+                    const maxStock = parseInt(this.getAttribute('data-max-stock'));
                     if (isNaN(newValue) || newValue < 1) {
                         newValue = 1;
-                    } else if (newValue > 10) {
-                        newValue = 10;
+                    } else if (newValue > maxStock) {
+                        newValue = maxStock;
                     }
                     this.value = newValue;
                     updateCartQuantity(cartId, newValue);
-                    updateSummary(); // Update summary immediately
+                    updateSummary();
                 });
 
                 // Handle change event
                 quantityInput.addEventListener('change', function() {
                     let newValue = parseInt(this.value);
+                    const maxStock = parseInt(this.getAttribute('data-max-stock'));
                     if (isNaN(newValue) || newValue < 1) {
                         newValue = 1;
-                    } else if (newValue > 10) {
-                        newValue = 10;
+                    } else if (newValue > maxStock) {
+                        newValue = maxStock;
                     }
                     this.value = newValue;
                     updateCartQuantity(cartId, newValue);
-                    updateSummary(); // Update summary immediately
+                    updateSummary();
                 });
 
                 // Prevent non-numeric input
@@ -806,54 +804,39 @@ $total_amount = 0;
                 });
             }
 
-            // Handle delete selected
-            deleteSelectedBtn.addEventListener('click', function() {
-                const selectedItems = Array.from(document.querySelectorAll('.cart-item .item-checkbox:checked'))
-                    .map(checkbox => checkbox.value);
+            // Delete selected items
+            document.getElementById('delete-selected').addEventListener('click', function() {
+                const selectedItems = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
                 
-                if (selectedItems.length > 0) {
-                    if (confirm('Are you sure you want to delete the selected items?')) {
-                        fetch('remove_from_cart.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ items: selectedItems })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                selectedItems.forEach(id => {
-                                    const item = document.querySelector(`[data-cart-id="${id}"]`);
-                                    if (item) {
-                                        item.remove();
-                                    }
-                                });
-                                
-                                totalItems = document.querySelectorAll('.cart-item .item-checkbox').length;
-                                updateSelectAllState();
-                                updateSelectedCount();
-                                updateSummary();
-                                
-                                const cartCount = document.querySelector('.cart-count');
-                                if (cartCount) {
-                                    cartCount.textContent = totalItems;
+                if (selectedItems.length === 0) {
+                    alert('Please select items to delete');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to remove the selected items from your cart?')) {
+                    const formData = new FormData();
+                    formData.append('items', JSON.stringify(selectedItems));
+
+                    fetch('remove_from_cart.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            selectedItems.forEach(id => {
+                                const item = document.querySelector(`[data-cart-id="${id}"]`);
+                                if (item) {
+                                    item.remove();
                                 }
-                                
-                                alert('Selected items have been removed from your cart.');
-                                
-                                if (totalItems === 0) {
-                                    location.reload();
-                                }
-                            } else {
-                                alert('Error removing items. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Error removing items. Please try again.');
-                        });
-                    }
+                            });
+                            updateSummary();
+                            updateSelectedCount();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
                 }
             });
 
@@ -872,6 +855,135 @@ $total_amount = 0;
             updateSelectAllState();
             updateSelectedCount();
             updateSummary();
+        });
+
+        // Remove item function
+        function removeItem(cartId) {
+            if (confirm('Are you sure you want to remove this item from your cart?')) {
+                const formData = new FormData();
+                formData.append('items', JSON.stringify([cartId]));
+
+                fetch('remove_from_cart.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the item from the DOM
+                        const cartItem = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
+                        if (cartItem) {
+                            cartItem.remove();
+                            updateSummary();
+                            updateSelectedCount();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        // Update cart count
+        function updateCartCount() {
+            const cartItems = document.querySelectorAll('.cart-item');
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = cartItems.length;
+            }
+        }
+
+        // Update summary
+        function updateSummary() {
+            const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+            let totalItems = 0;
+            let totalAmount = 0;
+
+            selectedItems.forEach(checkbox => {
+                const cartItem = checkbox.closest('.cart-item');
+                const quantity = parseInt(cartItem.querySelector('.quantity-input').value);
+                const price = parseFloat(cartItem.querySelector('.item-price').textContent.replace('₱', '').replace(',', ''));
+                
+                totalItems += quantity;
+                totalAmount += quantity * price;
+            });
+
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('total-amount').textContent = '₱' + totalAmount.toFixed(2);
+            updateCartCount();
+        }
+
+        // Initialize counts and summary
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary();
+            updateSelectedCount();
+            updateCartCount();
+        });
+
+        // Update counts when items are removed
+        function removeItem(cartId) {
+            if (confirm('Are you sure you want to remove this item from your cart?')) {
+                const formData = new FormData();
+                formData.append('items', JSON.stringify([cartId]));
+
+                fetch('remove_from_cart.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const cartItem = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
+                        if (cartItem) {
+                            cartItem.remove();
+                            updateSummary();
+                            updateSelectedCount();
+                            updateCartCount();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        // Update counts when items are deleted
+        document.getElementById('delete-selected').addEventListener('click', function() {
+            const selectedItems = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedItems.length === 0) {
+                alert('Please select items to delete');
+                return;
+            }
+
+            if (confirm('Are you sure you want to remove the selected items from your cart?')) {
+                const formData = new FormData();
+                formData.append('items', JSON.stringify(selectedItems));
+
+                fetch('remove_from_cart.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        selectedItems.forEach(id => {
+                            const item = document.querySelector(`[data-cart-id="${id}"]`);
+                            if (item) {
+                                item.remove();
+                            }
+                        });
+                        updateSummary();
+                        updateSelectedCount();
+                        updateCartCount();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
         });
     </script>
 
