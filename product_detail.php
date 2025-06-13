@@ -498,13 +498,9 @@ if ($result->num_rows > 0) {
 
                 <div class="product-info">
                     <h1 class="product-title"><?php echo $productName; ?></h1>
-                    <div class="rating">
-                        4.9 ★★★★★
-                    </div>
                     <div class="price">
                         <span class="current-price">₱ <?php echo $productPrice; ?></span>
                         <!-- Assume that you store original price in database as 'product_original_price' -->
-                        <span class="original-price">₱ <?php echo $productPrice * 1.4; ?></span> <!-- Example: apply 40% discount -->
                     </div>
 
                     <form action="payment.php?id=<?= $product_id ?>" method="POST" id="buyForm">
@@ -542,7 +538,6 @@ if ($result->num_rows > 0) {
                             <button type="button" class="buy-btn" id="buyNowBtn">Buy Now</button>
                             <button type="button" class="wishlist-btn" id="wishlistBtn">♥</button>
                         </div>
-                        <a href="#" class="size-chart">click here to see size chart</a>
                     </form>
             </div>
         </div>
