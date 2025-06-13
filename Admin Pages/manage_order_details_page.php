@@ -632,12 +632,9 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                     <i class="fas fa-inbox"></i>
                     <span>Inbox</span>
                 </li>                <li class="active">
+                </li>                <li class="active">
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
-                </li>
-                <li onclick="window.location.href='manage_returns.php'">
-                    <i class="fas fa-undo"></i>
-                    <span>Returns</span>
                 </li>
                 <li onclick="window.location.href='manage_returns.php'">
                     <i class="fas fa-undo"></i>
