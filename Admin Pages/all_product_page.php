@@ -6,7 +6,7 @@ include '../db.php';
 $category = isset($_GET['category']) ? $_GET['category'] : 'All';
 $status = isset($_GET['status']) ? strtolower($_GET['status']) : 'All';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'name_asc';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build the base SQL query
 $sql = "SELECT p.*, 
@@ -31,9 +31,10 @@ if ($status !== 'All') {
 }
 
 if (!empty($search)) {
-    $where_conditions[] = "p.product_name LIKE ?";
-    $params[] = "%$search%";
-    $param_types .= 's';
+    $where_conditions[] = "(LOWER(p.product_name) LIKE ? OR LOWER(p.product_category) LIKE ?)";
+    $search_term = strtolower($search) . '%';
+    $params = array_merge($params, [$search_term, $search_term]);
+    $param_types .= 'ss';
 }
 
 if (!empty($where_conditions)) {
@@ -309,6 +310,11 @@ $total_count = $count_result->fetch_assoc()['total'];
             color: #333;
         }
 
+        .search-form {
+            position: relative;
+            width: 100%;
+        }
+
         .search-box {
             width: 100%;
             padding: 8px 12px;
@@ -327,7 +333,35 @@ $total_count = $count_result->fetch_assoc()['total'];
             border-color: #4d8d8b;
             box-shadow: 0 0 0 2px rgba(77, 141, 139, 0.1);
         }
+
+        .search-box::placeholder {
+            color: #999;
+        }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-box');
+            const productRows = document.querySelectorAll('#productList tr');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                productRows.forEach(row => {
+                    // Get the product name from the span inside product-name-cell
+                    const productNameSpan = row.querySelector('.product-name-cell span');
+                    if (productNameSpan) {
+                        const productName = productNameSpan.textContent.toLowerCase();
+                        
+                        if (productName.startsWith(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -425,7 +459,13 @@ $total_count = $count_result->fetch_assoc()['total'];
 
                     <div class="filter-item">
                         <label class="filter-label">Search</label>
-                        <input type="text" name="search" class="search-box" placeholder="Search products..." value="<?php echo htmlspecialchars($search); ?>">
+                        <form method="GET" action="" class="search-form">
+                            <input type="text" name="search" class="search-box" placeholder="Search by name or category..." 
+                                   value="<?php echo htmlspecialchars($search); ?>">
+                            <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
+                            <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
+                            <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort); ?>">
+                        </form>
                     </div>
                 </form>
             </div>
