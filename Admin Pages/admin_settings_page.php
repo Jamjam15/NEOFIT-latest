@@ -26,6 +26,10 @@
                     <span>Dashboard</span>
                 </li>
                 <li>
+                    <i class="fas fa-inbox"></i>
+                    <span>Inbox</span>
+                </li>
+                <li>
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>

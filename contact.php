@@ -1,18 +1,32 @@
 <?php
 session_start();
+include 'db.php';
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Add your email handling logic here
     $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
     $subject = $_POST['subject'] ?? '';
     $message = $_POST['message'] ?? '';
     
-    // You can add email sending logic here
-    // mail($to, $subject, $message, $headers);
-    
-    $success_message = "Thank you for your message. We'll get back to you soon!";
+    // Validate inputs
+    if (empty($name) || empty($email) || empty($subject) || empty($message)) {
+        $error_message = "All fields are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error_message = "Invalid email format.";
+    } else {
+        // Store message in database
+        $stmt = $conn->prepare("INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $name, $email, $subject, $message);
+        
+        if ($stmt->execute()) {
+            $success_message = "Thank you for your message. We'll get back to you soon!";
+        } else {
+            $error_message = "Error sending message. Please try again later.";
+        }
+        
+        $stmt->close();
+    }
 }
 ?>
 
@@ -189,6 +203,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 20px;
         }
 
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
         .map-container {
             margin-top: 40px;
             border-radius: 8px;
@@ -241,39 +263,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         <?php endif; ?>
 
+        <?php if (isset($error_message)): ?>
+            <div class="error-message">
+                <?php echo $error_message; ?>
+            </div>
+        <?php endif; ?>
+
         <div class="contact-grid">
             <div class="contact-info">
                 <h2>Get in Touch</h2>
-                
                 <div class="info-item">
                     <i class="fas fa-map-marker-alt info-icon"></i>
                     <div class="info-content">
                         <h3>Address</h3>
-                        <p>Cavite State University Imus Campus<br>Palico IV, Imus, Cavite<br>Philippines 4103</p>
+                        <p>Cavite State University - Imus Campus<br>
+                           Palico IV, Imus City, Cavite</p>
                     </div>
                 </div>
-
                 <div class="info-item">
                     <i class="fas fa-phone info-icon"></i>
                     <div class="info-content">
                         <h3>Phone</h3>
-                        <p>(046) 471-6607</p>
+                        <p>+63 912 345 6789</p>
                     </div>
                 </div>
-
                 <div class="info-item">
                     <i class="fas fa-envelope info-icon"></i>
                     <div class="info-content">
                         <h3>Email</h3>
-                        <p>imus@cvsu.edu.ph</p>
+                        <p>support@neofit.com</p>
                     </div>
                 </div>
-
                 <div class="info-item">
                     <i class="fas fa-clock info-icon"></i>
                     <div class="info-content">
                         <h3>Business Hours</h3>
-                        <p>Monday - Friday: 8:00 AM - 5:00 PM<br>Saturday & Sunday: Closed</p>
+                        <p>Monday - Friday: 9:00 AM - 6:00 PM<br>
+                           Saturday: 10:00 AM - 4:00 PM<br>
+                           Sunday: Closed</p>
                     </div>
                 </div>
             </div>
