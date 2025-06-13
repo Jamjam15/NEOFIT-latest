@@ -671,7 +671,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
         
         <main class="main-content">
             <?php if ($user_filter): ?>
-                <a href="manage_orders.php" class="back-button">
+                <a href="customer_orders_page.php" class="back-button">
                     <i class="fas fa-arrow-left"></i> Back to All Customers
                 </a>
             <?php endif; ?>
@@ -683,14 +683,14 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             $name_stmt->bind_param("s", $user_filter);
             $name_stmt->execute();
             $name_result = $name_stmt->get_result();
-            $customer_name = "Unknown Customer";
+            $customer_name = null;
             if ($name_result->num_rows > 0) {
                 $name_row = $name_result->fetch_assoc();
                 $customer_name = $name_row['first_name'];
             }
             ?>
 
-            <h1 class="page-title">Orders for <?php echo htmlspecialchars($customer_name); ?></h1>
+            <h1 class="page-title"><?php echo $customer_name ? "Orders for " . htmlspecialchars($customer_name) : "Manage Orders"; ?></h1>
 
             <!-- Order Statistics -->
             <div class="stats-grid">
