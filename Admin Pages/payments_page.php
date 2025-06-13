@@ -42,6 +42,95 @@ require_once 'payment_functions.php';
             grid-template-columns: 1fr 1fr 1fr auto;
             gap: 15px;
             margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .payment-filters input[type="text"],
+        .payment-filters select,
+        .payment-filters input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        .payment-filters input[type="text"]:focus,
+        .payment-filters select:focus,
+        .payment-filters input[type="date"]:focus {
+            border-color: #4d8d8b;
+            box-shadow: 0 0 0 3px rgba(77, 141, 139, 0.1);
+            outline: none;
+        }
+        .payment-filters input[type="text"]:hover,
+        .payment-filters select:hover,
+        .payment-filters input[type="date"]:hover {
+            border-color: #4d8d8b;
+        }
+        .payment-filters input[type="text"]::placeholder {
+            color: #6c757d;
+        }
+        .payment-filters select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234d8d8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 35px;
+            cursor: pointer;
+        }
+
+        /* Payment Status Dropdown Styling */
+        .payment-filters select option[value="success"] {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        .payment-filters select option[value="pending"] {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        .payment-filters select option[value="failed"] {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        /* Add this to ensure the dropdown options are visible */
+        .payment-filters select option {
+            padding: 12px;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+
+        /* Add hover effect for options */
+        .payment-filters select option:hover {
+            filter: brightness(0.95);
+        }
+
+        /* Add this to ensure the dropdown is properly styled in different browsers */
+        .payment-filters select::-ms-expand {
+            display: none;
+        }
+
+        /* Add this to style the dropdown in Firefox */
+        @-moz-document url-prefix() {
+            .payment-filters select {
+                color: #333;
+                text-shadow: 0 0 0 #000;
+            }
         }
         .payment-summary {
             display: grid;
@@ -207,6 +296,74 @@ require_once 'payment_functions.php';
             margin-top: 4px;
             color: #666;
             font-style: italic;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .payment-filters {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* Add styles for specific status options */
+        .payment-filters select option[value="success"],
+        .payment-filters select option[value="Success"] {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-filters select option[value="pending"],
+        .payment-filters select option[value="Pending"] {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-filters select option[value="failed"],
+        .payment-filters select option[value="Failed"] {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Style for the select element when different options are selected */
+        .payment-filters select.status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-filters select.status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-filters select.status-failed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .payment-filters select option:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Firefox specific styles */
+        @-moz-document url-prefix() {
+            .payment-filters select {
+                color: #333;
+                text-shadow: 0 0 0 #000;
+            }
+            .payment-filters select option {
+                background-color: white;
+            }
+        }
+
+        /* Chrome/Safari specific styles */
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+            .payment-filters select {
+                color: #333;
+            }
+            .payment-filters select option {
+                background-color: white;
+            }
         }
     </style>
 </head>
@@ -598,6 +755,28 @@ require_once 'payment_functions.php';
             const modal = document.getElementById('payment-modal');
             if (e.target === modal) {
                 modal.style.display = 'none';
+            }
+        });
+
+        // Add JavaScript to update select background color on change
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                function updateSelectAppearance() {
+                    const value = statusSelect.value.toLowerCase();
+                    // Remove all status classes
+                    statusSelect.classList.remove('status-success', 'status-pending', 'status-failed');
+                    // Add the appropriate class
+                    if (value) {
+                        statusSelect.classList.add('status-' + value);
+                    }
+                }
+
+                // Update on change
+                statusSelect.addEventListener('change', updateSelectAppearance);
+                
+                // Set initial state
+                updateSelectAppearance();
             }
         });
     </script>
