@@ -235,7 +235,7 @@ $result = $stmt->get_result();
         <?php endif; ?>
     </main>
 
-    <?php include 'footer.php'; ?>
+    
 
     <script>
         function removeFavorite(productId) {
@@ -293,5 +293,7 @@ $result = $stmt->get_result();
         // Update cart count on page load
         updateCartCount();
     </script>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>

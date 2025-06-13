@@ -874,6 +874,6 @@ $total_amount = 0;
             updateSummary();
         });
     </script>
-
+<?php include 'footer.php'; ?>
 </body>
 </html>
