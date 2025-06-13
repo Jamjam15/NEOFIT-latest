@@ -178,10 +178,84 @@ $total_amount = 0;
 
         .payment-select {
             width: 100%;
-            padding: 10px;
+            padding: 12px 35px 12px 12px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background-color: white;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .payment-select:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        #neocreds-balance-display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        #neocreds-balance-display .balance-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        #balance-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            display: block;
+        }
+
+        #neocreds-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        #neocreds-summary .summary-row {
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #neocreds-summary .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+        }
+
+        .deduction-amount {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        #remaining-balance {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #remaining-balance.positive {
+            color: #28a745;
+        }
+
+        #remaining-balance.negative {
+            color: #dc3545;
         }
 
         .order-summary {
@@ -202,42 +276,6 @@ $total_amount = 0;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-        }
-
-        #neocreds-summary {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        #neocreds-summary .summary-row {
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        #neocreds-summary .summary-row:last-child {
-            margin-bottom: 0;
-            padding-top: 8px;
-            border-top: 1px dashed #ddd;
-        }
-
-        .deduction-amount {
-            color: #dc3545;
-            font-weight: bold;
-        }
-
-        .remaining-balance {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .remaining-balance.positive {
-            color: #28a745;
-        }
-
-        .remaining-balance.negative {
-            color: #dc3545;
         }
 
         .place-order-btn {
@@ -336,13 +374,14 @@ $total_amount = 0;
                 <h2 class="section-title">Payment Method</h2>
                 <div class="payment-method">
                     <select name="payment_method" id="payment-method" class="payment-select" onchange="handlePaymentMethodChange()">
-                        <option value="">Select Payment Method</option>
-                        <option value="NeoCreds">NeoCreds <span id="neocreds-balance"></span></option>
+                        <option value="" disabled selected>Select Payment Method</option>
+                        <option value="NeoCreds">NeoCreds</option>
                         <option value="Cash On Delivery">Cash On Delivery</option>
                         <option value="Pick Up">Pick Up</option>
                     </select>
-                    <div id="neocreds-balance-display" style="display: none; margin-top: 10px; color: #666;">
-                        Your NeoCreds Balance: <span id="balance-amount">₱0.00</span>
+                    <div id="neocreds-balance-display" style="display: none;">
+                        <div class="balance-title">Your NeoCreds Balance</div>
+                        <span id="balance-amount">₱0.00</span>
                     </div>
                 </div>
             </div>
@@ -426,11 +465,12 @@ $total_amount = 0;
             document.getElementById('balance-amount').textContent = '₱' + userNeocredsBalance.toFixed(2);
             document.getElementById('current-balance').textContent = '₱' + userNeocredsBalance.toFixed(2);
             document.getElementById('deduction-amount').textContent = '-₱' + totalAmount.toFixed(2);
-            document.getElementById('remaining-balance').textContent = '₱' + remainingBalance.toFixed(2);
             
-            // Update remaining balance color based on whether it's sufficient
+            // Update remaining balance with proper styling
             const remainingBalanceElement = document.getElementById('remaining-balance');
-            remainingBalanceElement.style.color = remainingBalance >= 0 ? '#28a745' : '#dc3545';
+            remainingBalanceElement.textContent = '₱' + remainingBalance.toFixed(2);
+            remainingBalanceElement.classList.remove('positive', 'negative');
+            remainingBalanceElement.classList.add(remainingBalance >= 0 ? 'positive' : 'negative');
         }
 
         document.getElementById('place-order-btn').addEventListener('click', function(e) {

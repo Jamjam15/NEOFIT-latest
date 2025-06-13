@@ -154,10 +154,12 @@ $result = $stmt->get_result();
         }
 
         .order-item {
-            display: flex;
-            align-items: center;
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 15px;
             padding: 15px 0;
             border-bottom: 1px solid #eee;
+            align-items: center;
         }
 
         .order-item:last-child {
@@ -169,11 +171,12 @@ $result = $stmt->get_result();
             height: 80px;
             object-fit: cover;
             border-radius: 4px;
-            margin-right: 15px;
         }
 
         .item-details {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .item-name {
@@ -181,7 +184,7 @@ $result = $stmt->get_result();
             margin-bottom: 5px;
         }
 
-        .item-size {
+        .item-size, .item-quantity {
             color: #666;
             font-size: 14px;
         }
@@ -189,6 +192,8 @@ $result = $stmt->get_result();
         .item-price {
             color: #55a39b;
             font-weight: bold;
+            white-space: nowrap;
+            text-align: right;
         }
 
         .order-footer {
@@ -325,6 +330,127 @@ $result = $stmt->get_result();
                 padding: 8px 16px;
                 font-size: 13px;
             }
+
+            .order-item {
+                grid-template-columns: 60px 1fr auto;
+                gap: 10px;
+            }
+
+            .item-image {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        .order-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .view-receipt-btn {
+            padding: 5px 10px;
+            background-color: #55a39b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .view-receipt-btn:hover {
+            background-color: #478c85;
+        }
+
+        .view-receipt-btn i {
+            font-size: 14px;
+        }
+
+        .receipt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .receipt-container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            position: relative;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .receipt-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+            padding: 10px;
+        }
+
+        .receipt-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .close-receipt {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-receipt:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .download-btn {
+            background: #55a39b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #478c85;
+        }
+
+        body.receipt-open {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -333,6 +459,21 @@ $result = $stmt->get_result();
         <div class="header">
             <h1 class="page-title">My Orders</h1>
             <a href="landing_page.php" class="continue-shopping">Continue Shopping</a>
+        </div>
+
+        <!-- Receipt Overlay Container -->
+        <div id="receiptOverlay" class="receipt-overlay" style="display: none;">
+            <div class="receipt-container">
+                <div class="receipt-actions">
+                    <button class="download-btn" onclick="downloadCurrentReceipt()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="close-receipt" onclick="closeReceipt()">&times;</button>
+                </div>
+                <div class="receipt-scroll-container">
+                    <div id="receiptContent"></div>
+                </div>
+            </div>
         </div>
 
         <div class="order-tabs">
@@ -375,8 +516,8 @@ $result = $stmt->get_result();
                                     <div class="item-name"><?php echo htmlspecialchars($order['product_name']); ?></div>
                                     <div class="item-size">Size: <?php echo strtoupper(htmlspecialchars($order['size'])); ?></div>
                                     <div class="item-quantity">Quantity: <?php echo htmlspecialchars($order['quantity']); ?></div>
-                                    <div class="item-price">₱<?php echo number_format($order['price'], 2); ?></div>
                                 </div>
+                                <div class="item-price">₱<?php echo number_format($order['price'] * $order['quantity'], 2); ?></div>
                             </div>
 
                             <div class="shipping-info">
@@ -389,8 +530,13 @@ $result = $stmt->get_result();
 
                         <div class="order-footer">
                             <div class="order-total">Total: ₱<?php echo number_format($order['item_total'], 2); ?></div>
-                            <div class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
-                                <?php echo htmlspecialchars($order['status']); ?>
+                            <div class="order-actions">
+                                <div class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
+                                    <?php echo htmlspecialchars($order['status']); ?>
+                                </div>
+                                <button onclick="viewReceipt(<?php echo $order['id']; ?>)" class="view-receipt-btn">
+                                    <i class="fas fa-receipt"></i> View Receipt
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -406,5 +552,126 @@ $result = $stmt->get_result();
     </div>
 
     <?php include 'footer.php'; ?>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        let currentOrderId = null;
+
+        function viewReceipt(orderId) {
+            currentOrderId = orderId;
+            const overlay = document.getElementById('receiptOverlay');
+            const receiptContent = document.getElementById('receiptContent');
+            document.body.classList.add('receipt-open');
+            
+            // Load receipt content
+            fetch('view_order_receipt.php?order_id=' + orderId)
+                .then(response => response.text())
+                .then(html => {
+                    receiptContent.innerHTML = html;
+                    overlay.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Error loading receipt:', error);
+                    alert('Error loading receipt. Please try again.');
+                });
+        }
+
+        function closeReceipt() {
+            const overlay = document.getElementById('receiptOverlay');
+            overlay.style.display = 'none';
+            document.body.classList.remove('receipt-open');
+            currentOrderId = null;
+        }
+
+        async function downloadCurrentReceipt() {
+            if (!currentOrderId) return;
+            
+            try {
+                // Get the receipt content element
+                const receiptContent = document.getElementById('receiptContent');
+                const receiptElement = receiptContent.querySelector('#receipt');
+                
+                if (!receiptElement) {
+                    throw new Error('Receipt element not found');
+                }
+
+                // Create a clone of the receipt for capturing
+                const clone = receiptElement.cloneNode(true);
+                clone.style.position = 'fixed';
+                clone.style.left = '-9999px';
+                clone.style.top = '0';
+                clone.style.width = '800px';
+                clone.style.background = 'white';
+                clone.style.padding = '20px';
+                clone.style.zIndex = '-1000';
+                document.body.appendChild(clone);
+
+                // Wait for images to load in the clone
+                const images = clone.getElementsByTagName('img');
+                await Promise.all([...images].map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                }));
+
+                // Use html2canvas with better quality settings
+                const canvas = await html2canvas(clone, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: 800,
+                    height: clone.offsetHeight,
+                    onclone: (clonedDoc) => {
+                        const clonedElement = clonedDoc.querySelector('#receipt');
+                        if (clonedElement) {
+                            // Remove any action elements from the clone
+                            const elementsToRemove = clonedElement.querySelectorAll('.receipt-actions, .close-receipt, .download-btn, .action-buttons, [onclick*="download"], [onclick*="close"]');
+                            elementsToRemove.forEach(el => el.remove());
+                        }
+                    }
+                });
+
+                // Convert to blob and download
+                canvas.toBlob(function(blob) {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'Order-Receipt-' + currentOrderId + '.png';
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Cleanup
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    document.body.removeChild(clone);
+                }, 'image/png', 1.0);
+            } catch (error) {
+                console.error('Error downloading receipt:', error);
+                alert('Error downloading receipt. Please try again.');
+            }
+        }
+
+        // Close receipt when clicking outside
+        document.addEventListener('click', function(event) {
+            const overlay = document.getElementById('receiptOverlay');
+            const receiptContainer = document.querySelector('.receipt-container');
+            
+            if (overlay.style.display === 'flex' && 
+                !receiptContainer.contains(event.target) && 
+                event.target !== receiptContainer) {
+                closeReceipt();
+            }
+        });
+
+        // Prevent closing when clicking inside receipt
+        document.querySelector('.receipt-container').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    </script>
 </body>
 </html>
