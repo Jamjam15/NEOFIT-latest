@@ -277,6 +277,10 @@ $result = $conn->query($sql);
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
+                <li>
+                    <i class="fas fa-undo"></i>
+                    <span>Returns</span>
+                </li>
                 <li class="active">
                     <i class="fas fa-users"></i>
                     <span>Customer Orders</span>

@@ -186,7 +186,7 @@ error_log("Found " . $result->num_rows . " pending return requests");
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                    <span>Messages</span>
                 </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
@@ -204,9 +204,21 @@ error_log("Found " . $result->num_rows . " pending return requests");
                     <i class="fas fa-tshirt"></i>
                     <span>All Products</span>
                 </li>
+                <li onclick="window.location.href='add_new_product_page.php'">
+                    <i class="fas fa-plus-square"></i>
+                    <span>Add New Product</span>
+                </li>
+                <li onclick="window.location.href='payments_page.php'">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </li>
                 <li onclick="window.location.href='neocreds_page.php'">
                     <i class="fas fa-coins"></i>
                     <span>NeoCreds</span>
+                </li>
+                <li onclick="window.location.href='settings.php'">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
                 </li>
             </ul>
         </aside>
