@@ -899,13 +899,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                             <?php
                                             break;
                                             
-                                        case 'delivered':
-                                            ?>
-                                            <button type="button" class="btn btn-return" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'returned')">
-                                                <i class="fas fa-undo"></i> Mark as Returned
-                                            </button>
-                                            <?php
-                                            break;
+                                       
                                             
                                         case 'cancelled':
                                             // No actions available for cancelled orders
