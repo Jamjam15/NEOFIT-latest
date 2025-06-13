@@ -25,12 +25,42 @@ session_start();
             color: #000;
         }
 
+        /* Header Styles */
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
         .content-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
             flex: 1;
         }
+
+  
 
         .page-title {
             font-size: 36px;
@@ -96,6 +126,7 @@ session_start();
             color: #666;
             margin-bottom: 5px;
         }
+        
 
         @media (max-width: 768px) {
             .content-container {
@@ -112,11 +143,20 @@ session_start();
 
             .policy-section h3 {
                 font-size: 18px;
-            }
+            }   
         }
+ 
+
     </style>
 </head>
 <body>
+<?php if (isset($_SESSION['email'])): ?>
+    <header>
+        <div class="header-container">
+            <a href="landing_page.php" class="logo">NEOFIT</a>
+        </div>
+    </header>
+    <?php endif; ?>
     <div class="content-container">
         <h1 class="page-title">Privacy Policy</h1>
 
