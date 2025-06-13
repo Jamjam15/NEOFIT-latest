@@ -272,7 +272,7 @@ $total_count = $count_result->fetch_assoc()['total'];
                 </li>
                 <li onclick="window.location.href='inbox.php'">
                     <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                    <span>Messages</span>
                 </li>
                 <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>

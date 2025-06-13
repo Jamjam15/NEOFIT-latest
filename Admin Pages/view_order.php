@@ -558,7 +558,7 @@ if (empty($payment_method) || $payment_method === '0') {
                     <i class="fas fa-chart-line"></i>
                     <span>Dashboard</span>
                 </li>
-                <li class="active">
+                <li onclick="window.location.href='manage_orders_page.php'">
                     <i class="fas fa-list"></i>
                     <span>Manage Orders</span>
                 </li>
@@ -578,9 +578,17 @@ if (empty($payment_method) || $payment_method === '0') {
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </li>
+                <li onclick="window.location.href='neocreds_page.php'">
+                    <i class="fas fa-coins"></i>
+                    <span>NeoCreds</span>
+                </li>
                 <li onclick="window.location.href='settings.php'">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
+                </li>
+                <li onclick="window.location.href='inbox.php'">
+                    <i class="fas fa-inbox"></i>
+                    <span>Messages</span>
                 </li>
             </ul>
         </aside>
