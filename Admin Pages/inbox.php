@@ -34,10 +34,12 @@ if (isset($_POST['send_reply'])) {
 // Handle move to trash
 if (isset($_POST['move_to_trash'])) {
     $message_id = $_POST['message_id'];
-    $stmt = $conn->prepare("UPDATE contact_messages SET status = 'deleted' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE contact_messages SET status = 'trashed' WHERE id = ?");
     $stmt->bind_param("i", $message_id);
     $stmt->execute();
     $stmt->close();
+    $conn->close();
+    include '../db.php';
 }
 
 // Handle restore from trash
@@ -47,6 +49,8 @@ if (isset($_POST['restore_message'])) {
     $stmt->bind_param("i", $message_id);
     $stmt->execute();
     $stmt->close();
+    $conn->close();
+    include '../db.php';
 }
 
 // Get messages with pagination and tab filter
@@ -57,35 +61,33 @@ $offset = ($page - 1) * $per_page;
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'inbox'; // Default to inbox tab
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-$where_clause = "";
-
-switch ($active_tab) {
-    case 'inbox':
-        $where_clause .= " WHERE status IN ('unread', 'read')";
-        break;
-    case 'sent':
-        $where_clause .= " WHERE status = 'replied'";
-        break;
-    case 'trash':
-        $where_clause .= " WHERE status = 'deleted'";
-        break;
-    default:
-        $where_clause .= " WHERE status IN ('unread', 'read')"; // Default to inbox
-        break;
-}
+// These variables are now used within the specific tab content blocks
+$inbox_where_clause = " WHERE status IN ('unread', 'read')";
+$sent_where_clause = " WHERE status = 'replied'";
+$trash_where_clause = " WHERE status = 'trashed'";
 
 if ($search) {
-    $where_clause .= " AND (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
+    $inbox_where_clause .= " AND (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
+    $sent_where_clause .= " AND (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
+    $trash_where_clause .= " AND (name LIKE '%$search%' OR email LIKE '%$search%' OR subject LIKE '%$search%')";
 }
 
-$sql = "SELECT * FROM contact_messages" . $where_clause . " ORDER BY created_at DESC LIMIT $offset, $per_page";
-$result = $conn->query($sql);
+// Initialize total_pages for pagination. It will be set again within each tab if necessary.
+$total_pages = 1;
 
-// Get total count for pagination
-$count_sql = "SELECT COUNT(*) as total FROM contact_messages" . $where_clause;
-$total_result = $conn->query($count_sql);
-$total_row = $total_result->fetch_assoc();
-$total_pages = ceil($total_row['total'] / $per_page);
+// Define a function to get messages and total count for a given WHERE clause
+function getMessagesAndTotalCount($conn, $where_clause, $offset, $per_page) {
+    $sql = "SELECT * FROM contact_messages" . $where_clause . " ORDER BY created_at DESC LIMIT $offset, $per_page";
+    $result = $conn->query($sql);
+
+    $count_sql = "SELECT COUNT(*) as total FROM contact_messages" . $where_clause;
+    $total_result = $conn->query($count_sql);
+    $total_row = $total_result->fetch_assoc();
+    $total_count = $total_row['total'];
+
+    return ['result' => $result, 'total_count' => $total_count];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -248,6 +250,11 @@ $total_pages = ceil($total_row['total'] / $per_page);
             color: #c62828;
         }
 
+        .status-trashed {
+            background-color: #f0f4c3;
+            color: #689f38;
+        }
+
         .action-button {
             padding: 6px 12px;
             border: none;
@@ -406,10 +413,31 @@ $total_pages = ceil($total_row['total'] / $per_page);
             color: #333;
         }
 
+        /* New style for message content box */
+        .message-content-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
         #modalReply {
             margin-top: 15px;
-            border-top: 1px dashed #ccc;
-            padding-top: 15px;
+        }
+
+        .admin-reply-box {
+            background-color: #e8f5e9; /* Light green for the container */
+            border: 1px solid #c8e6c9; /* Slightly darker green border */
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .admin-reply-box h3 {
+            font-size: 1em; /* Make the heading same size as paragraph text */
+            margin-top: 0; /* Remove default top margin */
+            margin-bottom: 10px; /* Add some space below the heading */
         }
 
         .reply-form textarea {
@@ -524,8 +552,13 @@ $total_pages = ceil($total_row['total'] / $per_page);
                         </div>
                     </div>
                     <div class="message-list">
-                        <?php if ($active_tab === 'inbox' && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                        <?php 
+                            $inbox_data = getMessagesAndTotalCount($conn, $inbox_where_clause, $offset, $per_page);
+                            $result_inbox = $inbox_data['result'];
+                            $total_pages_inbox = ceil($inbox_data['total_count'] / $per_page);
+                            if ($result_inbox->num_rows > 0): 
+                        ?>
+                            <?php while($row = $result_inbox->fetch_assoc()): ?>
                                 <div class="message-item <?php echo $row['status'] === 'unread' ? 'unread' : ''; ?>" onclick="viewMessage(<?php echo $row['id']; ?>)">
                                     <div class="message-content">
                                         <div class="message-header">
@@ -565,8 +598,13 @@ $total_pages = ceil($total_row['total'] / $per_page);
                         </div>
                     </div>
                     <div class="message-list">
-                        <?php if ($active_tab === 'sent' && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                        <?php 
+                            $sent_data = getMessagesAndTotalCount($conn, $sent_where_clause, $offset, $per_page);
+                            $result_sent = $sent_data['result'];
+                            $total_pages_sent = ceil($sent_data['total_count'] / $per_page);
+                            if ($result_sent->num_rows > 0): 
+                        ?>
+                            <?php while($row = $result_sent->fetch_assoc()): ?>
                                 <div class="message-item" onclick="viewMessage(<?php echo $row['id']; ?>)">
                                     <div class="message-content">
                                         <div class="message-header">
@@ -603,8 +641,14 @@ $total_pages = ceil($total_row['total'] / $per_page);
                         </div>
                     </div>
                     <div class="message-list">
-                        <?php if ($active_tab === 'trash' && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                        <?php 
+                            $trash_data = getMessagesAndTotalCount($conn, $trash_where_clause, $offset, $per_page);
+                            $result_trash = $trash_data['result'];
+                            $total_pages_trash = ceil($trash_data['total_count'] / $per_page);
+                            
+                            if ($result_trash->num_rows > 0): 
+                        ?>
+                            <?php while($row = $result_trash->fetch_assoc()): ?>
                                 <div class="message-item" onclick="viewMessage(<?php echo $row['id']; ?>)">
                                     <div class="message-content">
                                         <div class="message-header">
@@ -637,9 +681,23 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 </div>
             </div>
 
-            <?php if ($total_pages > 1): ?>
+            <?php 
+            $current_total_pages = 1;
+            switch ($active_tab) {
+                case 'inbox':
+                    $current_total_pages = $total_pages_inbox;
+                    break;
+                case 'sent':
+                    $current_total_pages = $total_pages_sent;
+                    break;
+                case 'trash':
+                    $current_total_pages = $total_pages_trash;
+                    break;
+            }
+            
+            if ($current_total_pages > 1): ?>
                 <div class="pagination">
-                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <?php for ($i = 1; $i <= $current_total_pages; $i++): ?>
                         <button class="page-button <?php echo $i === $page ? 'active' : ''; ?>" 
                                 onclick="window.location.href='?tab=<?php echo $active_tab; ?>&page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>'">
                             <?php echo $i; ?>
@@ -661,13 +719,17 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 <div class="message-details">
                     <p><strong>From:</strong> <span id="modalSender"></span></p>
                     <p><strong>Email:</strong> <span id="modalEmail"></span></p>
-                    <p><strong>Subject:</strong> <span id="modalSubject"></span></p>
                     <p><strong>Date:</strong> <span id="modalDate"></span></p>
                 </div>
-                <div id="modalMessage" style="white-space: pre-wrap;"></div>
+                <div class="message-content-box">
+                    <p><strong>Message:</strong></p>
+                    <div id="modalMessage" style="white-space: pre-wrap;"></div>
+                </div>
                 <div id="modalReply" style="display: none;">
-                    <h3>Your Reply:</h3>
-                    <div id="modalReplyContent" style="white-space: pre-wrap;"></div>
+                    <div class="admin-reply-box">
+                        <h3>Your Reply:</h3>
+                        <div id="modalReplyContent" style="white-space: pre-wrap;"></div>
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button class="action-button reply-button" id="modalReplyButton" style="display: none;">
@@ -804,7 +866,7 @@ $total_pages = ceil($total_row['total'] / $per_page);
                         moveToTrashButton.style.display = 'inline-flex';
                     } else if (data.status === 'replied') {
                         moveToTrashButton.style.display = 'inline-flex';
-                    } else if (data.status === 'deleted') {
+                    } else if (data.status === 'trashed') {
                         restoreButton.style.display = 'inline-flex';
                         deletePermanentlyButton.style.display = 'inline-flex';
                     }
@@ -847,6 +909,10 @@ $total_pages = ceil($total_row['total'] / $per_page);
         // Move to trash functionality
         function moveToTrash(id) {
             if (confirm('Are you sure you want to move this message to trash?')) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTab = urlParams.get('tab') || 'inbox';
+                const currentSearch = urlParams.get('search') || '';
+
                 fetch('inbox.php', {
                     method: 'POST',
                     headers: {
@@ -856,7 +922,7 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 })
                 .then(response => response.text())
                 .then(data => {
-                    location.reload(); // Original reload behavior
+                    window.location.href = `?tab=${activeTab}&search=${encodeURIComponent(currentSearch)}`;
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -868,6 +934,10 @@ $total_pages = ceil($total_row['total'] / $per_page);
         // Restore message functionality
         function restoreMessage(id) {
             if (confirm('Are you sure you want to restore this message from trash?')) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTab = urlParams.get('tab') || 'inbox';
+                const currentSearch = urlParams.get('search') || '';
+
                 fetch('inbox.php', {
                     method: 'POST',
                     headers: {
@@ -877,7 +947,7 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 })
                 .then(response => response.text())
                 .then(data => {
-                    location.reload();
+                    window.location.href = `?tab=${activeTab}&search=${encodeURIComponent(currentSearch)}`;
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -889,7 +959,11 @@ $total_pages = ceil($total_row['total'] / $per_page);
         // Delete message permanently functionality
         function deleteMessagePermanently(id) {
             if (confirm('Are you sure you want to permanently delete this message? This action cannot be undone.')) {
-                fetch('delete_message.php', {
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTab = urlParams.get('tab') || 'inbox';
+                const currentSearch = urlParams.get('search') || '';
+
+                fetch('permanently_delete_message.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -899,7 +973,7 @@ $total_pages = ceil($total_row['total'] / $per_page);
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        location.reload();
+                        window.location.href = `?tab=${activeTab}&search=${encodeURIComponent(currentSearch)}`;
                     } else {
                         alert('Error deleting message: ' + data.message);
                     }

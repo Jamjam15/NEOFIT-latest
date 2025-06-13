@@ -47,32 +47,90 @@ if (isset($_GET['saved'])) {
         }
 
         /* Header Styles */
-        header {
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 0;
-            position: fixed;
-            width: 100%;
+         /* Header Styles */
+         header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #FFFFFF;
+            color: #000;
+            position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
         }
 
         .header-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 15px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
         }
 
         .logo {
             font-size: 24px;
             font-weight: bold;
-            color: #000;
-            text-decoration: none;
             letter-spacing: 1px;
+            color: #000000;
+            text-decoration: none;
         }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #1E1E1E;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #666;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #eee;
+            background-color: #f5f5f5;
+            width: 180px;
+        }
+
+        .user-icon, .cart-icon, .messages-icon {
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #55a39b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
 
         /* Main Content Styles */
         .main-content {
@@ -854,12 +912,13 @@ if (isset($_GET['saved'])) {
     </style>
 </head>
 <body>
-    <header>
+<header>
         <div class="header-container">
-            <a href="landing_page.php" class="logo">NEOFIT</a>
+            <a class="logo" href="landing_page.php">NEOFIT</a>
+            
+              
         </div>
     </header>
-
     <main class="main-content">
         <div class="settings-header">
             <div class="profile-picture-container">

@@ -14,16 +14,16 @@ if (!isset($_POST['message_id'])) {
 
 $message_id = (int)$_POST['message_id'];
 
-$stmt = $conn->prepare("DELETE FROM contact_messages WHERE id = ?");
+$stmt = $conn->prepare("UPDATE contact_messages SET status = 'deleted' WHERE id = ?");
 $stmt->bind_param("i", $message_id);
 
 $response = ['success' => false];
 
 if ($stmt->execute()) {
     $response['success'] = true;
-    $response['message'] = 'Message deleted successfully';
+    $response['message'] = 'Message moved to trash successfully';
 } else {
-    $response['message'] = 'Error deleting message: ' . $stmt->error;
+    $response['message'] = 'Error moving message to trash: ' . $stmt->error;
 }
 
 header('Content-Type: application/json');
