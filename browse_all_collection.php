@@ -807,7 +807,44 @@
     </div>
 </footer>
     <script>
-        // Update cart count
+        // Perform client-side search
+        function performSearch(query) {
+            const allProducts = document.querySelectorAll('.product-card');
+            const lowerQuery = query.toLowerCase();
+
+            allProducts.forEach(product => {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                if (productName.includes(lowerQuery)) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("search-input");
+
+            // Populate from URL parameter if available
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get("query");
+            if (query && searchInput) {
+                searchInput.value = query;
+                performSearch(query);
+            }
+
+            // Real-time search as user types
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    const query = this.value.trim();
+                    performSearch(query);
+                });
+            }
+
+            // Update cart count on load
+            updateCartCount();
+        });
+
         function updateCartCount() {
             fetch('get_cart_count.php')
                 .then(response => response.json())
@@ -820,9 +857,7 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
-
-        // Update cart count on page load
-        updateCartCount();
     </script>
+
     </body>
     </html>
