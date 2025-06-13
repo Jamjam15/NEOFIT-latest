@@ -345,6 +345,21 @@ $result = $stmt->get_result();
                 width: 60px;
                 height: 60px;
             }
+
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .modal-header h3 {
+                font-size: 20px;
+            }
+
+            .modal-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
         }
 
         .order-actions {
@@ -374,6 +389,89 @@ $result = $stmt->get_result();
         .view-receipt-btn i {
             font-size: 14px;
         }
+
+         .receipt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+         .receipt-container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            position: relative;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+          .receipt-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+            padding: 10px;
+        }
+
+        .receipt-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+         .close-receipt {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-receipt:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+          .download-btn {
+            background: #55a39b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #478c85;
+        }
+
+        body.receipt-open {
+            overflow: hidden;
+        }
+
 
         .return-btn, .cancel-btn {
             padding: 5px 10px;
@@ -409,8 +507,7 @@ $result = $stmt->get_result();
             cursor: not-allowed;
         }
 
-        .modal {
-            display: none;
+        .modal {            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -418,42 +515,106 @@ $result = $stmt->get_result();
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
         .modal-content {
             position: relative;
             background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 30px;
+            border-radius: 12px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .modal-header {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
         }
 
         .modal-header h3 {
             margin: 0;
             color: #333;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .modal-body {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .modal-body p {
+            color: #444;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .return-proof-upload {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+            margin: 20px 0;
+        }
+
+        .file-input-container {
+            margin: 15px 0;
+        }
+
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .file-input:hover {
+            background-color: #f8f9fa;
+        }
+
+        #imagePreview {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .modal-footer {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
         }
 
         .modal-btn {
-            padding: 8px 16px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
             font-size: 14px;
             transition: background-color 0.3s;
         }
@@ -468,95 +629,64 @@ $result = $stmt->get_result();
         }
 
         .modal-btn-confirm {
-            background-color: #dc3545;
+            background-color: #28a745;
             color: white;
         }
 
         .modal-btn-confirm:hover {
-            background-color: #c82333;
+            background-color: #218838;
         }
 
-        .receipt-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+        .form-section {
+            margin-bottom: 25px;
         }
 
-        .receipt-container {
-            background: white;
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            position: relative;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 500;
+            font-size: 16px;
         }
 
-        .receipt-actions {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 10px;
-            z-index: 1001;
-            padding: 10px;
+        .form-textarea:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
         }
 
-        .receipt-scroll-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .close-receipt {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+        .upload-instructions {
             transition: all 0.3s ease;
         }
 
-        .close-receipt:hover {
-            background: #f0f0f0;
-            color: #333;
+        .upload-instructions:hover {
+            background: #e9ecef;
         }
 
-        .download-btn {
-            background: #55a39b;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            transition: background-color 0.3s;
+        .alert-note {
+            animation: fadeIn 0.3s ease-in-out;
         }
 
-        .download-btn:hover {
-            background: #478c85;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        body.receipt-open {
-            overflow: hidden;
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .modal-header h3 {
+                font-size: 20px;
+            }
+
+            .modal-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -624,13 +754,17 @@ $result = $stmt->get_result();
                                     <div class="item-quantity">Quantity: <?php echo htmlspecialchars($order['quantity']); ?></div>
                                 </div>
                                 <div class="item-price">₱<?php echo number_format($order['price'] * $order['quantity'], 2); ?></div>
-                            </div>
-
-                            <div class="shipping-info">
+                            </div>                            <div class="shipping-info">
                                 <h4>Shipping Information</h4>
                                 <p><?php echo htmlspecialchars($order['delivery_address']); ?></p>
                                 <p>Contact: <?php echo htmlspecialchars($order['contact_number']); ?></p>
                                 <p>Payment Method: <?php echo htmlspecialchars($order['payment_method']); ?></p>
+                                <?php if ($order['status'] === 'Returned' && !empty($order['admin_notes'])): ?>
+                                    <div class="return-notes" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                        <h4>Return Notes</h4>
+                                        <p style="color: #666;"><?php echo nl2br(htmlspecialchars($order['admin_notes'])); ?></p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -641,14 +775,12 @@ $result = $stmt->get_result();
                                     <?php echo htmlspecialchars($order['status']); ?>
                                 </div>                                <button onclick="viewReceipt(<?php echo $order['id']; ?>)" class="view-receipt-btn">
                                     <i class="fas fa-receipt"></i> View Receipt
-                                </button>
-                                <?php if ($order['status'] === 'Delivered'): ?>
-                                    <button class="return-btn" onclick="openReturnModal(<?php echo $order['id']; ?>)">
+                                </button>                                <?php if ($order['status'] === 'Delivered'): ?>
+                                    <button class="return-btn" onclick="openReturnModal('<?php echo $order['id']; ?>', event)">
                                         <i class="fas fa-undo"></i> Return Order
                                     </button>
-                                <?php endif; ?>
-                                <?php if ($order['status'] !== 'Delivered' && $order['status'] !== 'Cancelled'): ?>
-                                    <button class="cancel-btn" onclick="openCancelModal(<?php echo $order['id']; ?>)">
+                                <?php endif; ?>                                <?php if ($order['status'] === 'To Pack' || $order['status'] === 'Packed'): ?>
+                                    <button class="cancel-btn" onclick="openCancelModal(<?php echo $order['id']; ?>, event)">
                                         <i class="fas fa-times"></i> Cancel Order
                                     </button>
                                 <?php endif; ?>
@@ -660,49 +792,98 @@ $result = $stmt->get_result();
                 <div class="empty-orders">
                     <h2>No orders found for this status</h2>
                     <p>You don't have any orders with the selected status.</p>
-                    <a href="?status=all" class="shop-now-btn">View All Orders</a>
+                   
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
-    <?php include 'footer.php'; ?>
-
-    <!-- Cancel Order Modal -->
-    <div id="cancelModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <?php include 'footer.php'; ?>    <!-- Cancel Order Modal -->
+    <div id="cancelModal" class="modal" style="display: none;">
+        <div class="modal-content">            <div class="modal-header">
                 <h3>Cancel Order</h3>
+                <button onclick="closeModal('cancelModal')" class="close-modal" style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep Order</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmCancelOrder()">Yes, Cancel Order</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep Return</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmCancelOrder()">Yes, Cancel Return</button>
             </div>
         </div>
-    </div>    <!-- Return Order Modal -->
-    <div id="returnModal" class="modal">
+    </div>    <!-- Return Order Modal -->    
+    
+    <div id="returnModal" class="modal" style="display: none;">
         <div class="modal-content">
+            <input type="hidden" id="hiddenOrderId" value="" />
             <div class="modal-header">
-                <h3>Return Order</h3>
+                <h3><i class="fas fa-undo"></i> Return Order Request</h3>
+                <button onclick="closeModal('returnModal')" class="close-modal" style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Please provide a reason for returning this order:</p>
-                <textarea id="returnReason" style="width: 100%; min-height: 100px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter your reason for returning this order..."></textarea>
-                <p class="note" style="color: #666; font-size: 14px;">Note: Your return request will need to be approved by an administrator.</p>
+                <div class="form-section">
+                    <label for="returnReason" class="form-label">Reason for Return:</label>
+                    <textarea 
+                        id="returnReason" 
+                        class="form-textarea" 
+                        placeholder="Please provide detailed information about why you're returning this item..."
+                        style="width: 100%; min-height: 120px; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 15px; resize: vertical; margin-bottom: 20px;"
+                    ></textarea>
+                </div>
+                
+                <div class="return-proof-upload">
+                    <h4 style="margin-bottom: 15px; color: #333;"><i class="fas fa-camera"></i> Return Proof Photo</h4>
+                    <div class="file-input-container">
+                        <input 
+                            type="file" 
+                            id="returnProof" 
+                            accept="image/*" 
+                            class="file-input"
+                        >
+                    </div>
+                    <div id="imagePreview" style="display: none;">
+                        <img id="previewImage">
+                        <button 
+                            onclick="removeImage()" 
+                            class="remove-image-btn" 
+                            style="margin-top: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                        >
+                            <i class="fas fa-trash"></i> Remove Image
+                        </button>
+                    </div>
+                    <div class="upload-instructions" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+                        <p style="margin: 0; color: #666; font-size: 14px;">
+                            <i class="fas fa-info-circle"></i> <strong>Photo Requirements:</strong>
+                        </p>
+                        <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #666; font-size: 14px;">
+                            <li>Clear, well-lit photo of the item</li>
+                            <li>Show any defects or issues clearly</li>
+                            <li>File format: JPG or PNG</li>
+                            <li>Maximum file size: 5MB</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert-note" style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #856404;"></i>
+                    <span style="color: #856404; margin-left: 8px;">Your return request will be reviewed by our team within 1-2 business days.</span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal('returnModal')">Cancel</button>
-                <button class="modal-btn modal-btn-confirm" onclick="confirmReturnOrder()">Submit Return Request</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal('returnModal')" style="background: #6c757d;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmReturnOrder()" style="background: #28a745;">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        let currentOrderId = null;
+    <script>        let currentOrderId = null;
+        let currentReturnImage = null;
 
         function viewReceipt(orderId) {
             currentOrderId = orderId;
@@ -818,18 +999,52 @@ $result = $stmt->get_result();
         // Prevent closing when clicking inside receipt
         document.querySelector('.receipt-container').addEventListener('click', function(event) {
             event.stopPropagation();
-        });
+        });        function openCancelModal(orderId, event) {
+            // Prevent event from bubbling up
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Only show the cancel modal if this was triggered by the Cancel Order button
+            const sourceElement = event.target.closest('.cancel-btn');
+            if (!sourceElement || !sourceElement.classList.contains('cancel-btn')) {
+                return; // Exit if not triggered by Cancel Order button
+            }
 
-        function openCancelModal(orderId) {
             currentOrderId = orderId;
             const modal = document.getElementById('cancelModal');
             modal.style.display = 'flex';
-        }
+        }function openReturnModal(orderId, event) {
+            // Prevent event from bubbling up
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Only show the return modal if this was triggered by the Return Order button
+            const sourceElement = event.target.closest('.return-btn');
+            if (!sourceElement || !sourceElement.classList.contains('return-btn')) {
+                return; // Exit if not triggered by Return Order button
+            }
 
-        function openReturnModal(orderId) {
-            currentOrderId = orderId;
-            const modal = document.getElementById('returnModal');
-            modal.style.display = 'flex';
+            currentOrderId = orderId.toString(); // Ensure orderId is a string
+            
+            // Reset the form
+            document.getElementById('returnReason').value = '';
+            document.getElementById('returnProof').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImage').src = '';
+            currentReturnImage = null;
+            
+            // Add hidden input for order ID
+            let hiddenInput = document.getElementById('hiddenOrderId');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.id = 'hiddenOrderId';
+                document.querySelector('#returnModal .modal-content').appendChild(hiddenInput);
+            }
+            hiddenInput.value = currentOrderId;
+            
+            // Show the modal
+            document.getElementById('returnModal').style.display = 'flex';
         }
 
         function closeModal(modalId) {
@@ -864,25 +1079,72 @@ $result = $stmt->get_result();
                 console.error('Error cancelling order:', error);
                 alert('Error cancelling order. Please try again.');
             });
-        }        function confirmReturnOrder() {
-            if (!currentOrderId) return;
+        }        // Preview return proof image
+        document.getElementById('returnProof').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    alert('File is too large. Please select an image under 5MB.');
+                    this.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = e.target.result;
+                    preview.style.display = 'block';
+                    currentReturnImage = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        });        
+        
+        function confirmReturnOrder() {
+            const hiddenOrderId = document.getElementById('hiddenOrderId');
+            const orderId = hiddenOrderId ? hiddenOrderId.value : currentOrderId;
+            
+            console.log('Submitting return for order:', orderId); // Debug line
+            
+            if (!orderId) {
+                alert('Invalid order ID. Please refresh the page and try again.');
+                return;
+            }
             
             const reason = document.getElementById('returnReason').value.trim();
+            const fileInput = document.getElementById('returnProof');
+            
             if (!reason) {
                 alert('Please provide a reason for returning the order.');
                 return;
             }
             
-            // Perform the return order action (e.g., AJAX request)
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Please upload a photo of the item you wish to return.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('return_reason', reason);
+            formData.append('return_proof', fileInput.files[0]);
+            
+            // Show loading state
+            const submitButton = document.querySelector('.modal-btn-confirm');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            console.log('Submitting FormData:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0]+ ': ' + pair[1]);
+            }
+
+            
+            // Perform the return order action with file upload
             fetch('return_order.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    order_id: currentOrderId,
-                    return_reason: reason
-                })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
@@ -898,6 +1160,54 @@ $result = $stmt->get_result();
             .catch(error => {
                 console.error('Error returning order:', error);
                 alert('Error returning order. Please try again.');
+            });
+        }        
+        
+        function removeImage() {
+            const fileInput = document.getElementById('returnProof');
+            const preview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            
+            // Clear the file input
+            fileInput.value = '';
+            
+            // Hide the preview and clear the image
+            preview.style.display = 'none';
+            previewImage.src = '';
+            
+            // Reset the current image variable
+            currentReturnImage = null;
+            
+            // Create a new file input to ensure complete reset
+            const newFileInput = document.createElement('input');
+            newFileInput.type = 'file';
+            newFileInput.id = 'returnProof';
+            newFileInput.accept = 'image/*';
+            newFileInput.className = 'file-input';
+            
+            // Replace the old input with the new one
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            
+            // Re-attach the change event listener to the new input
+            newFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        alert('File is too large. Please select an image under 5MB.');
+                        this.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('imagePreview');
+                        const previewImage = document.getElementById('previewImage');
+                        previewImage.src = e.target.result;
+                        preview.style.display = 'block';
+                        currentReturnImage = file;
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
         }
     </script>
