@@ -705,6 +705,12 @@ if ($result->num_rows > 0) {
             <?php endif; ?>            // Check if selected size has available stock
             const selectedSize = sizeSelect.value;
             const available = availableQuantities[selectedSize];
+            const quantity = parseInt(quantityInput.value);
+            
+            if (quantity <= 0) {
+                alert("Please select a valid quantity");
+                return;
+            }
             
             if (available <= 0) {
                 alert("Selected size is out of stock");
@@ -749,7 +755,12 @@ if ($result->num_rows > 0) {
             formData.append("quantity", quantityInput.value);            // Check if selected size has available stock
             const selectedSize = sizeSelect.value;
             const available = availableQuantities[selectedSize];
+            const quantity = parseInt(quantityInput.value);
             
+            if (quantity <= 0) {
+                alert("Please select a valid quantity");
+                return;
+            }
             if (available <= 0) {
                 alert("Selected size is out of stock");
                 return;
